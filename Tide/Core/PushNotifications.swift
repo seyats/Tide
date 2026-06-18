@@ -51,7 +51,8 @@ final class PushNotificationService {
             }
         })
         observers.append(NotificationCenter.default.addObserver(forName: .tidePushRegistrationFailed, object: nil, queue: .main) { [weak self] notification in
-            Task { @MainActor in self?.lastError = notification.object as? String }
+            let message = notification.object as? String
+            Task { @MainActor in self?.lastError = message }
         })
         Task { await refreshAuthorizationStatus() }
     }

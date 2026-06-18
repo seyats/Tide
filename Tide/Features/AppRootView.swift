@@ -57,7 +57,7 @@ struct MainTabView: View {
             if let user = dependencies.session.currentUser {
                 ProfileView(user: user)
             } else {
-                EmptyStateView(symbol: "person.crop.circle", title: String(localized: "profile_empty_title"), message: String(localized: "profile_empty_message"))
+                EmptyStateView(symbol: "person.crop.circle", title: "profile_empty_title", message: "profile_empty_message")
             }
         }
     }
@@ -241,7 +241,7 @@ struct AuthenticationView: View {
             HStack(spacing: 10) {
                 Image(systemName: systemImage)
                     .font(.system(size: 15, weight: .semibold))
-                Text(String(localized: title))
+                Text(LocalizedStringKey(title))
                     .font(.subheadline.weight(.semibold))
             }
             .frame(maxWidth: .infinity)
@@ -254,7 +254,7 @@ struct AuthenticationView: View {
     }
 
     private func authField(title: String, text: Binding<String>, field: Field, autocapitalization: TextInputAutocapitalization = .never, keyboard: UIKeyboardType = .default, contentType: UITextContentType? = nil) -> some View {
-        TextField(String(localized: title), text: text)
+        TextField(LocalizedStringKey(title), text: text)
             .textInputAutocapitalization(autocapitalization)
             .keyboardType(keyboard)
             .textContentType(contentType)
@@ -303,7 +303,7 @@ struct AuthenticationView: View {
     private func startGoogleSignIn() {
         if let baseURL = ServerConfiguration.current.apiBaseURL {
             let url = baseURL.appendingPathComponent("auth/google/start")
-            if !openURL(url) { showGoogleInfo = true }
+            openURL(url)
         } else {
             showGoogleInfo = true
         }

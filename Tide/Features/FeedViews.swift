@@ -302,6 +302,5 @@ struct TrendsView: View {
         ContentUnavailableView("No trends yet", systemImage: "chart.bar.xaxis", description: Text("Trending topics will appear when real posts arrive."))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 40)
-        }
     }
 }

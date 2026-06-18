@@ -47,7 +47,6 @@ struct TideApp: App {
         }
     }
 }
-}
 
 @MainActor
 @Observable

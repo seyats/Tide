@@ -79,7 +79,7 @@ struct ProfileView: View {
                 VerifiedName(user: profile).font(.title2)
                 Text(profile.handle).foregroundStyle(.secondary)
                 if profile.status != .active {
-                    Label(profile.status.rawValue.capitalized, systemImage: "exclamationmark.shield.fill").font(.caption).foregroundStyle(.secondary)
+                    Label(profile.status.title, systemImage: "exclamationmark.shield.fill").font(.caption).foregroundStyle(.secondary)
                 }
                 Text(profile.biography)
                 Text("Joined \(profile.joinedAt.formatted(.dateTime.month(.wide).year()))")
@@ -211,11 +211,11 @@ struct SettingsView: View {
         Form {
             Section("Appearance") {
                 Picker("Theme", selection: $preferences.theme) {
-                    ForEach(PreferencesStore.Theme.allCases) { Text($0.rawValue.capitalized).tag($0) }
+                    ForEach(PreferencesStore.Theme.allCases) { Text($0.title).tag($0) }
                 }
                 LabeledContent("Design", value: "Monochrome Liquid Glass")
                 Picker("Backdrop", selection: $preferences.backdropStyle) {
-                    ForEach(PreferencesStore.BackdropStyle.allCases) { Text($0.rawValue.capitalized).tag($0) }
+                    ForEach(PreferencesStore.BackdropStyle.allCases) { Text($0.title).tag($0) }
                 }
                 TextField("Backdrop resource", text: $preferences.backdropResourceName)
                 TextField("Backdrop video URL", text: $preferences.backdropVideoURLString)

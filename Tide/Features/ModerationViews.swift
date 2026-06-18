@@ -285,7 +285,16 @@ struct AdminBroadcastView: View {
 enum AdminSection: String, CaseIterable, Identifiable {
     case dashboard, users, content, reports, notifications, system
     var id: String { rawValue }
-    var title: String { rawValue.capitalized }
+    var title: String {
+        switch self {
+        case .dashboard: String(localized: "admin_section_dashboard")
+        case .users: String(localized: "admin_section_users")
+        case .content: String(localized: "admin_section_content")
+        case .reports: String(localized: "admin_section_reports")
+        case .notifications: String(localized: "admin_section_notifications")
+        case .system: String(localized: "admin_section_system")
+        }
+    }
     var symbol: String {
         switch self {
         case .dashboard: "chart.xyaxis.line"

@@ -64,9 +64,9 @@ enum PostVisibility: String, CaseIterable, Identifiable, Codable, Sendable {
 
     var title: String {
         switch self {
-        case .everyone: "Everyone"
-        case .followers: "Followers"
-        case .onlyMe: "Only me"
+        case .everyone: String(localized: "post_visibility_everyone")
+        case .followers: String(localized: "post_visibility_followers")
+        case .onlyMe: String(localized: "post_visibility_only_me")
         }
     }
 }
@@ -106,6 +106,14 @@ enum ChatKind: String, CaseIterable, Identifiable, Codable, Sendable {
     case channel
 
     var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .direct: String(localized: "chat_kind_direct")
+        case .group: String(localized: "chat_kind_group")
+        case .channel: String(localized: "chat_kind_channel")
+        }
+    }
 }
 
 struct Message: Identifiable, Hashable, Codable, Sendable {
@@ -144,6 +152,15 @@ enum AccountStatus: String, CaseIterable, Codable, Sendable {
     case restricted
     case suspended
     case deleted
+
+    var title: String {
+        switch self {
+        case .active: String(localized: "account_status_active")
+        case .restricted: String(localized: "account_status_restricted")
+        case .suspended: String(localized: "account_status_suspended")
+        case .deleted: String(localized: "account_status_deleted")
+        }
+    }
 }
 
 enum ModerationState: String, CaseIterable, Codable, Sendable {
@@ -166,13 +183,13 @@ enum ReportReason: String, CaseIterable, Identifiable, Codable, Sendable {
 
     var title: String {
         switch self {
-        case .spam: "Spam"
-        case .harassment: "Harassment"
-        case .violence: "Violence"
-        case .nudity: "Nudity"
-        case .misinformation: "Misinformation"
-        case .copyright: "Copyright"
-        case .other: "Other"
+        case .spam: String(localized: "report_reason_spam")
+        case .harassment: String(localized: "report_reason_harassment")
+        case .violence: String(localized: "report_reason_violence")
+        case .nudity: String(localized: "report_reason_nudity")
+        case .misinformation: String(localized: "report_reason_misinformation")
+        case .copyright: String(localized: "report_reason_copyright")
+        case .other: String(localized: "report_reason_other")
         }
     }
 }

@@ -39,7 +39,7 @@ struct MainTabView: View {
                     tabRoot(tab)
                         .navigationDestination(for: AppRoute.self, destination: destination)
                 }
-                .tabItem { Label(tab.shortTitle, systemImage: tab.symbol) }
+                .tabItem { Label(tab.title, systemImage: tab.symbol) }
                 .tag(tab)
             }
         }
@@ -57,7 +57,7 @@ struct MainTabView: View {
             if let user = dependencies.session.currentUser {
                 ProfileView(user: user)
             } else {
-                EmptyStateView(symbol: "person.crop.circle", title: "profile_empty_title", message: "profile_empty_message")
+                EmptyStateView(symbol: "person.crop.circle", title: String(localized: "profile_empty_title"), message: String(localized: "profile_empty_message"))
             }
         }
     }
@@ -115,82 +115,21 @@ struct AuthenticationView: View {
     var body: some View {
         ZStack {
             TideBackdropView(configuration: dependencies.preferences.backdropConfiguration(isAuthentication: true))
-            LinearGradient(colors: [.black.opacity(0.72), .black.opacity(0.30), .clear], startPoint: .top, endPoint: .bottom)
+            LinearGradient(colors: [.black.opacity(0.88), .black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
-            VStack(spacing: 28) {
+            VStack(spacing: 24) {
                 Spacer()
-                if let logo = UIImage(named: dependencies.preferences.brandLogoResourceName) {
-                    Image(uiImage: logo)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 120, height: 120)
-                        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
-                        .shadow(color: .black.opacity(0.4), radius: 24, y: 10)
-                } else {
-                    Image(systemName: "water.waves")
-                        .font(.system(size: 88, weight: .thin))
-                        .frame(width: 120, height: 120)
-                        .background(.black.opacity(0.25), in: RoundedRectangle(cornerRadius: 30, style: .continuous))
-                }
-                VStack(spacing: 8) {
-                    Text("Tide").font(.system(size: 48, weight: .black, design: .rounded))
-                    Text("auth_subtitle")
-                        .foregroundStyle(.secondary)
-                }
-                VStack(spacing: 14) {
-                    if isRegistering {
-                        TextField("auth_display_name", text: $displayName)
-                            .textInputAutocapitalization(.words)
-                            .focused($focusedField, equals: .name)
-                            .textFieldStyle(.roundedBorder)
-                    }
-                    TextField("auth_email", text: $email)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
-                        .textContentType(.username)
-                        .focused($focusedField, equals: .email)
-                        .textFieldStyle(.roundedBorder)
-                    SecureField("auth_password", text: $password)
-                        .textContentType(isRegistering ? .newPassword : .password)
-                        .focused($focusedField, equals: .password)
-                        .textFieldStyle(.roundedBorder)
-                    Button(action: submitEmail) {
-                        Text(isRegistering ? String(localized: "auth_create_account") : String(localized: "auth_continue_email"))
-                    }
-                    .buttonStyle(TidePrimaryButtonStyle())
-                    .disabled(isLoading)
-                    SignInWithAppleButton(.signIn, onRequest: { request in
-                        request.requestedScopes = [.fullName, .email]
-                    }, onCompletion: { result in
-                        handleApple(result: result)
-                    })
-                    .signInWithAppleButtonStyle(.white)
-                    .frame(height: 52)
-                    Button("auth_google") { startGoogleSignIn() }
-                        .buttonStyle(TideSecondaryButtonStyle())
-                }
-                .padding(20)
-                .background(.black.opacity(0.32), in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(.white.opacity(0.12), lineWidth: 0.6)
-                }
-                .overlay(alignment: .topTrailing) {
-                    Button {
-                        isRegistering.toggle()
-                    } label: {
-                        Text(isRegistering ? String(localized: "auth_switch_to_signin") : String(localized: "auth_switch_to_create"))
-                    }
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.white.opacity(0.85))
-                    .padding(.trailing, 16)
-                    .padding(.top, 10)
-                }
+                authCard
                 Spacer()
-                Text("auth_footer")
-                    .font(.caption).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                Text(String(localized: "auth_footer"))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 20)
             }
-            .padding(24)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 16)
         }
         .alert("auth_error_title", isPresented: Binding(
             get: { alertMessage != nil },
@@ -205,6 +144,126 @@ struct AuthenticationView: View {
         } message: {
             Text("auth_google_message")
         }
+    }
+
+    private var authCard: some View {
+        VStack(spacing: 18) {
+            HStack {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(String(localized: "auth_title"))
+                        .font(.system(size: 42, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                    Text(String(localized: "auth_subtitle"))
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.white.opacity(0.72))
+                }
+                Spacer()
+                appLogo
+            }
+
+            HStack(spacing: 12) {
+                authProviderButton(title: "auth_google", systemImage: "g.circle.fill", tint: .white)
+                SignInWithAppleButton(.signIn, onRequest: { request in
+                    request.requestedScopes = [.fullName, .email]
+                }, onCompletion: { result in
+                    handleApple(result: result)
+                })
+                .signInWithAppleButtonStyle(.whiteOutline)
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+            }
+
+            Divider().overlay(.white.opacity(0.18))
+
+            VStack(spacing: 12) {
+                if isRegistering {
+                    authField(title: "auth_display_name", text: $displayName, field: .name, autocapitalization: .words, contentType: .name)
+                }
+                authField(title: "auth_email", text: $email, field: .email, keyboard: .emailAddress, contentType: .username)
+                SecureField(String(localized: "auth_password"), text: $password)
+                    .textContentType(isRegistering ? .newPassword : .password)
+                    .focused($focusedField, equals: .password)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 14)
+                    .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(.white.opacity(0.10), lineWidth: 0.8))
+                    .foregroundStyle(.white)
+            }
+
+            Button(action: submitEmail) {
+                Text(isRegistering ? String(localized: "auth_create_account") : String(localized: "auth_continue_email"))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(TidePrimaryButtonStyle())
+            .disabled(isLoading)
+
+            Button {
+                isRegistering.toggle()
+            } label: {
+                Text(isRegistering ? String(localized: "auth_switch_to_signin") : String(localized: "auth_switch_to_create"))
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.white.opacity(0.85))
+            }
+            .padding(.top, 2)
+        }
+        .padding(20)
+        .background(.black.opacity(0.42), in: RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(.white.opacity(0.12), lineWidth: 0.7)
+        }
+        .shadow(color: .black.opacity(0.35), radius: 26, y: 12)
+    }
+
+    private var appLogo: some View {
+        Group {
+            if let logo = UIImage(named: dependencies.preferences.brandLogoResourceName) {
+                Image(uiImage: logo)
+                    .resizable()
+                    .scaledToFit()
+            } else {
+                Image(systemName: "water.waves")
+                    .font(.system(size: 46, weight: .thin))
+                    .foregroundStyle(.white)
+            }
+        }
+        .frame(width: 72, height: 72)
+        .padding(12)
+        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).stroke(.white.opacity(0.14), lineWidth: 0.8))
+        .shadow(color: .black.opacity(0.4), radius: 18, y: 8)
+    }
+
+    private func authProviderButton(title: String, systemImage: String, tint: Color) -> some View {
+        Button {
+            startGoogleSignIn()
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: systemImage)
+                    .font(.system(size: 15, weight: .semibold))
+                Text(String(localized: title))
+                    .font(.subheadline.weight(.semibold))
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 13)
+            .foregroundStyle(.white)
+            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(.white.opacity(0.12), lineWidth: 0.8))
+        }
+        .tint(tint)
+    }
+
+    private func authField(title: String, text: Binding<String>, field: Field, autocapitalization: TextInputAutocapitalization = .never, keyboard: UIKeyboardType = .default, contentType: UITextContentType? = nil) -> some View {
+        TextField(String(localized: title), text: text)
+            .textInputAutocapitalization(autocapitalization)
+            .keyboardType(keyboard)
+            .textContentType(contentType)
+            .focused($focusedField, equals: field)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(.white.opacity(0.10), lineWidth: 0.8))
+            .foregroundStyle(.white)
     }
 
     private func submitEmail() {
@@ -244,7 +303,7 @@ struct AuthenticationView: View {
     private func startGoogleSignIn() {
         if let baseURL = ServerConfiguration.current.apiBaseURL {
             let url = baseURL.appendingPathComponent("auth/google/start")
-            _ = openURL(url)
+            if !openURL(url) { showGoogleInfo = true }
         } else {
             showGoogleInfo = true
         }

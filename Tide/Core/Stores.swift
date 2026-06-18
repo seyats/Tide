@@ -660,6 +660,14 @@ final class PreferencesStore {
         case light
         case dark
         var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .system: String(localized: "theme_system")
+            case .light: String(localized: "theme_light")
+            case .dark: String(localized: "theme_dark")
+            }
+        }
     }
 
     enum BackdropStyle: String, CaseIterable, Identifiable {
@@ -671,6 +679,17 @@ final class PreferencesStore {
         case video
 
         var id: String { rawValue }
+
+        var title: String {
+            switch self {
+            case .automatic: String(localized: "backdrop_automatic")
+            case .black: String(localized: "backdrop_black")
+            case .white: String(localized: "backdrop_white")
+            case .authImage: String(localized: "backdrop_auth_image")
+            case .image: String(localized: "backdrop_image")
+            case .video: String(localized: "backdrop_video")
+            }
+        }
     }
 
     private let defaults: UserDefaults

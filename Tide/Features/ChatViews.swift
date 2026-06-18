@@ -10,9 +10,9 @@ struct ChatListView: View {
         List {
             TideConnectionBadge(state: messenger.connectionState)
                 .listRowSeparator(.hidden)
-            Picker("Filter", selection: $filter) {
-                Text("All").tag(ChatKind?.none)
-                ForEach(ChatKind.allCases) { Text($0.rawValue.capitalized).tag(Optional($0)) }
+            Picker(String(localized: "chat_filter_title"), selection: $filter) {
+                Text(String(localized: "chat_filter_all")).tag(ChatKind?.none)
+                ForEach(ChatKind.allCases) { Text($0.title).tag(Optional($0)) }
             }
             .pickerStyle(.segmented)
             .listRowSeparator(.hidden)

@@ -45,7 +45,15 @@ final class LocalDatabase {
     }
 
     func bootstrapIfNeeded() {
-        return
+        guard fetch(UserRecord.self).isEmpty,
+              fetch(PostRecord.self).isEmpty,
+              fetch(ChatRecord.self).isEmpty,
+              fetch(StoryRecord.self).isEmpty else { return }
+
+        DemoData.users.forEach(createUser)
+        DemoData.posts.forEach(createPost)
+        DemoData.stories.forEach(createStory)
+        DemoData.chats.forEach(createChat)
     }
 
     func purgeLegacyDemoDataIfNeeded() {

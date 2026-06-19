@@ -96,7 +96,8 @@ private struct SocialAuthSection: View {
     let namespace: Namespace.ID
     
     var body: some View {
-        if #available(iOS 26.0, *) {
+        #available(iOS 26.0, *) ? 
+        AnyView(
             GlassEffectContainer(spacing: 16) {
                 HStack(spacing: 16) {
                     SocialButton(icon: "github", namespace: namespace)
@@ -104,13 +105,13 @@ private struct SocialAuthSection: View {
                     SocialButton(icon: "apple.logo", namespace: namespace)
                 }
             }
-        } else {
+        ) : AnyView(
             HStack(spacing: 16) {
                 SocialButtonFallback(icon: "github")
                 SocialButtonFallback(icon: "google")
                 SocialButtonFallback(icon: "apple.logo")
             }
-        }
+        )
     }
 }
 

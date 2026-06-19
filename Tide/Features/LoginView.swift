@@ -96,22 +96,23 @@ private struct SocialAuthSection: View {
     let namespace: Namespace.ID
     
     var body: some View {
-        #available(iOS 26.0, *) ? 
-        AnyView(
-            GlassEffectContainer(spacing: 16) {
+        Group {
+            if #available(iOS 26.0, *) {
+                GlassEffectContainer(spacing: 16) {
+                    HStack(spacing: 16) {
+                        SocialButton(icon: "github", namespace: namespace)
+                        SocialButton(icon: "google", namespace: namespace)
+                        SocialButton(icon: "apple.logo", namespace: namespace)
+                    }
+                }
+            } else {
                 HStack(spacing: 16) {
-                    SocialButton(icon: "github", namespace: namespace)
-                    SocialButton(icon: "google", namespace: namespace)
-                    SocialButton(icon: "apple.logo", namespace: namespace)
+                    SocialButtonFallback(icon: "github")
+                    SocialButtonFallback(icon: "google")
+                    SocialButtonFallback(icon: "apple.logo")
                 }
             }
-        ) : AnyView(
-            HStack(spacing: 16) {
-                SocialButtonFallback(icon: "github")
-                SocialButtonFallback(icon: "google")
-                SocialButtonFallback(icon: "apple.logo")
-            }
-        )
+        }
     }
 }
 
@@ -228,9 +229,13 @@ private struct CompactButton: View {
         .padding(.horizontal, 20)
         .frame(height: 52)
         .background(
-            #available(iOS 26.0, *) ? 
-            AnyView(EmptyView().glassEffect(.regular.interactive(), in: .rect(cornerRadius: 12))) :
-            AnyView(Color(white: 0.1).opacity(0.8).clipShape(RoundedRectangle(cornerRadius: 12)))
+            Group {
+                if #available(iOS 26.0, *) {
+                    EmptyView().glassEffect(.regular.interactive(), in: .rect(cornerRadius: 12))
+                } else {
+                    Color(white: 0.1).opacity(0.8).clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)

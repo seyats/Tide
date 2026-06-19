@@ -181,9 +181,13 @@ private struct SignInButton: View {
             .frame(maxWidth: .infinity)
             .frame(height: 54)
             .background(
-                #available(iOS 26.0, *) ? 
-                AnyView(EmptyView().glassEffect(.regular.interactive(), in: .rect(cornerRadius: 14))) :
-                AnyView(Color(white: 0.15).opacity(0.9).clipShape(RoundedRectangle(cornerRadius: 14)))
+                Group {
+                    if #available(iOS 26.0, *) {
+                        EmptyView().glassEffect(.regular.interactive(), in: .rect(cornerRadius: 14))
+                    } else {
+                        Color(white: 0.15).opacity(0.9).clipShape(RoundedRectangle(cornerRadius: 14))
+                    }
+                }
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 14)
@@ -241,9 +245,13 @@ private struct SocialIcon: View {
                 .frame(width: 20, height: 20)
                 .frame(width: 48, height: 48)
                 .background(
-                    #available(iOS 26.0, *) ? 
-                    AnyView(EmptyView().glassEffect(.regular.interactive(), in: .circle)) :
-                    AnyView(Circle().fill(Color(white: 0.1)))
+                    Group {
+                        if #available(iOS 26.0, *) {
+                            EmptyView().glassEffect(.regular.interactive(), in: .circle)
+                        } else {
+                            Circle().fill(Color(white: 0.1))
+                        }
+                    }
                 )
                 .overlay(Circle().stroke(Color(white: 0.2), lineWidth: 0.5))
         }

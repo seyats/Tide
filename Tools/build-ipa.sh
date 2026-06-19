@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-: "${DEVELOPMENT_TEAM:?APPLE_TEAM_ID is required}"
-: "${PRODUCT_BUNDLE_IDENTIFIER:?APP_BUNDLE_ID is required}"
-: "${PROFILE_NAME:?Provisioning profile was not imported}"
-
 MARKETING_VERSION="${MARKETING_VERSION:-1.0.0}"
 CURRENT_PROJECT_VERSION="${CURRENT_PROJECT_VERSION:-1}"
 EXPORT_METHOD="${EXPORT_METHOD:-app-store-connect}"
+
+if [[ -z "${PROFILE_NAME:-}" ]]; then
+  echo "Signing profile is missing, building an unsigned IPA instead."
+  bash Tools/build-unsigned-ipa.sh
+  cp build/export/Tide-unsigned.ipa build/export/Tide.ipa
+  exit 0
+fi
+
+: "${DEVELOPMENT_TEAM:?APPLE_TEAM_ID is required}"
+: "${PRODUCT_BUNDLE_IDENTIFIER:?APP_BUNDLE_ID is required}"
 
 rm -rf build/archive build/export
 mkdir -p build/archive build/export

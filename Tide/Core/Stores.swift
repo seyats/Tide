@@ -152,6 +152,52 @@ final class SessionStore {
         errorMessage = nil
         defaults.removeObject(forKey: currentUserKey)
     }
+    
+    func signUpEmail(email: String, password: String, displayName: String) async {
+        isWorking = true
+        defer { isWorking = false }
+        try? await Task.sleep(for: .milliseconds(350))
+        
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !normalizedEmail.isEmpty, !password.isEmpty, !displayName.isEmpty else {
+            errorMessage = "Заполните все поля."
+            return
+        }
+        
+        guard EmailSuggestions.isValidEmail(normalizedEmail) else {
+            errorMessage = "Некорректный email адрес."
+            return
+        }
+        
+        guard password.count >= 8 else {
+            errorMessage = "Пароль должен содержать минимум 8 символов."
+            return
+        }
+        
+        let account = "auth.email.\(normalizedEmail)"
+        let hash = Self.hash("\(normalizedEmail):\(password)")
+        
+        // Проверяем, не существует ли уже такой аккаунт
+        if SecureStore.value(account: account) != nil {
+            errorMessage = "Аккаунт с этой почтой уже существует."
+            return
+        }
+        
+        // Создаём нового пользователя
+        let createdUser = Self.makeUser(
+            name: displayName.trimmingCharacters(in: .whitespacesAndNewlines),
+            username: Self.fallbackUsername(from: normalizedEmail),
+            biography: "Присоединился к Tide"
+        )
+        
+        database?.createUser(createdUser)
+        try? SecureStore.set(hash, account: account)
+        try? SecureStore.set(createdUser.id.uuidString, account: "\(account).user")
+        
+        currentUser = createdUser
+        defaults.set(createdUser.id.uuidString, forKey: currentUserKey)
+        errorMessage = nil
+    }
 
     private static func hash(_ value: String) -> String {
         SHA256.hash(data: Data(value.utf8)).map { String(format: "%02x", $0) }.joined()

@@ -1,204 +1,265 @@
 import SwiftUI
 
+/// Экран входа по Email в стиле Apple 2026.
+/// Использует стандарты ios-dev-plugin: Liquid Glass UI и декомпозицию View.
 @available(iOS 17.0, *)
 struct EmailLoginView: View {
-    @Environment(\.dismiss) var dismiss
-    @State private var email: String = ""
-    @State private var password: String = ""
-    @State private var showPassword: Bool = false
-
+    // MARK: - Environment
+    @Environment(\.dismiss) private var dismiss
+    
+    // MARK: - State
+    @State private var email = ""
+    @State private var password = ""
+    @State private var isPasswordVisible = false
+    @Namespace private var glassNamespace
+    
+    // MARK: - Body
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-
+            
             VStack(alignment: .leading, spacing: 0) {
-                // Кнопка Back
-                HStack {
-                    Button(action: { dismiss() }) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    Spacer()
-                }
-                .padding(.horizontal, 24)
-                .padding(.vertical, 16)
-
-                ScrollView(showsIndicators: false) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        // Заголовок
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Welcome back")
-                                .font(.system(size: 32, weight: .bold, design: .default))
-                                .foregroundColor(.white)
-
-                            Text("Sign in to continue")
-                                .font(.system(size: 14, weight: .regular, design: .default))
-                                .foregroundColor(Color(white: 0.6))
-                        }
-                        .padding(.bottom, 32)
-
-                        // Email поле
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Email")
-                                .font(.system(size: 13, weight: .semibold, design: .default))
-                                .foregroundColor(.white)
-
-                            HStack(spacing: 12) {
-                                TextField("name@example.com", text: $email)
-                                    .font(.system(size: 15, weight: .regular, design: .default))
-                                    .foregroundColor(.white)
-                                    .accentColor(.white)
-                                    .keyboardType(.emailAddress)
-                                    .autocapitalization(.none)
-                                    .disableAutocorrection(true)
-
-                                Image(systemName: "envelope.fill")
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundColor(Color(white: 0.5))
-                            }
-                            .frame(height: 48)
-                            .padding(.horizontal, 16)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(white: 0.12).opacity(0.6))
-
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color(white: 0.25).opacity(0.3), lineWidth: 0.5)
-                                }
-                            )
-                            .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 3)
-                        }
-                        .padding(.bottom, 16)
-
-                        // Password поле
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Password")
-                                .font(.system(size: 13, weight: .semibold, design: .default))
-                                .foregroundColor(.white)
-
-                            HStack(spacing: 12) {
-                                if showPassword {
-                                    TextField("Password", text: $password)
-                                        .font(.system(size: 15, weight: .regular, design: .default))
-                                        .foregroundColor(.white)
-                                        .accentColor(.white)
-                                } else {
-                                    SecureField("Password", text: $password)
-                                        .font(.system(size: 15, weight: .regular, design: .default))
-                                        .foregroundColor(.white)
-                                        .accentColor(.white)
-                                }
-
-                                Button(action: { showPassword.toggle() }) {
-                                    Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
-                                        .font(.system(size: 14, weight: .regular))
-                                        .foregroundColor(Color(white: 0.5))
-                                }
-                            }
-                            .frame(height: 48)
-                            .padding(.horizontal, 16)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(white: 0.12).opacity(0.6))
-
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color(white: 0.25).opacity(0.3), lineWidth: 0.5)
-                                }
-                            )
-                            .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 3)
-                        }
-                        .padding(.bottom, 12)
-
-                        // Forgot password ссылка
-                        HStack {
-                            Spacer()
-                            Button(action: {}) {
-                                Text("Forgot password?")
-                                    .font(.system(size: 12, weight: .medium, design: .default))
-                                    .foregroundColor(Color(white: 0.6))
-                            }
-                        }
-                        .padding(.bottom, 32)
-
-                        // Кнопка Sign in
-                        Button(action: {}) {
-                            HStack(spacing: 8) {
-                                Text("Sign in")
-                                    .font(.system(size: 15, weight: .semibold, design: .default))
-                                    .foregroundColor(.white)
-
-                                Image(systemName: "arrow.right")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundColor(.white)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 48)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color(white: 0.12).opacity(0.6))
-
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color(white: 0.25).opacity(0.3), lineWidth: 0.5)
-                                }
-                            )
-                            .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 3)
-                        }
-                        .padding(.bottom, 28)
-
-                        // Разделитель
-                        HStack(spacing: 12) {
-                            Rectangle()
-                                .frame(height: 0.5)
-                                .foregroundColor(Color(white: 0.25).opacity(0.5))
-
-                            Text("or continue with")
-                                .font(.system(size: 12, weight: .regular, design: .default))
-                                .foregroundColor(Color(white: 0.5))
-
-                            Rectangle()
-                                .frame(height: 0.5)
-                                .foregroundColor(Color(white: 0.25).opacity(0.5))
-                        }
-                        .padding(.bottom, 28)
-
-                        // Социальные кнопки (круглые, маленькие)
-                        HStack(spacing: 16) {
-                            Spacer()
-                            SocialIconButton(icon: "github", size: 44)
-                            SocialIconButton(icon: "g.circle.fill", size: 44)
-                            SocialIconButton(icon: "apple.logo", size: 44)
-                            Spacer()
-                        }
-                        .padding(.bottom, 40)
-
-                        // Текст регистрации
-                        HStack(spacing: 4) {
-                            Text("No account?")
-                                .font(.system(size: 13, weight: .regular, design: .default))
-                                .foregroundColor(Color(white: 0.6))
-
-                            Button(action: {}) {
-                                Text("Sign up")
-                                    .font(.system(size: 13, weight: .semibold, design: .default))
-                                    .foregroundColor(.white)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.bottom, 40)
-                    }
-                    .padding(.horizontal, 24)
-                }
+                BackButton(action: { dismiss() })
+                    .padding(.top, 16)
+                    .padding(.bottom, 32)
+                
+                HeaderSection()
+                    .padding(.bottom, 40)
+                
+                InputSection(
+                    email: $email,
+                    password: $password,
+                    isPasswordVisible: $isPasswordVisible
+                )
+                .padding(.bottom, 12)
+                
+                ForgotPasswordButton()
+                    .padding(.bottom, 40)
+                
+                SignInButton(action: handleSignIn)
+                    .padding(.bottom, 40)
+                
+                SocialContinueSection(namespace: glassNamespace)
+                
+                Spacer()
+                
+                FooterSection()
             }
+            .padding(.horizontal, 28)
         }
         .navigationBarHidden(true)
+    }
+    
+    // MARK: - Actions
+    private func handleSignIn() {
+        // Логика входа
+    }
+}
+
+// MARK: - Subviews
+
+@available(iOS 17.0, *)
+private struct BackButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "chevron.left")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(.white)
+        }
     }
 }
 
 @available(iOS 17.0, *)
+private struct HeaderSection: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Welcome back")
+                .font(.system(size: 34, weight: .bold))
+                .foregroundColor(.white)
+            
+            Text("Sign in to continue")
+                .font(.system(size: 16))
+                .foregroundColor(.gray)
+        }
+    }
+}
+
+@available(iOS 17.0, *)
+private struct InputSection: View {
+    @Binding var email: String
+    @Binding var password: String
+    @Binding var isPasswordVisible: Bool
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            // Email Field
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Email")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                HStack {
+                    TextField("name@example.com", text: $email)
+                        .font(.system(size: 16))
+                        .foregroundColor(.white)
+                        .accentColor(.white)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                    
+                    Image(systemName: "envelope")
+                        .foregroundColor(.gray)
+                }
+                .padding(.horizontal, 16)
+                .frame(height: 54)
+                .background(Color(white: 0.1).opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color(white: 0.2), lineWidth: 0.5)
+                )
+            }
+            
+            // Password Field
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Password")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.white)
+                
+                HStack {
+                    if isPasswordVisible {
+                        TextField("Password", text: $password)
+                    } else {
+                        SecureField("Password", text: $password)
+                    }
+                    
+                    Button(action: { isPasswordVisible.toggle() }) {
+                        Image(systemName: isPasswordVisible ? "eye" : "eye.slash")
+                            .foregroundColor(.gray)
+                    }
+                }
+                .font(.system(size: 16))
+                .padding(.horizontal, 16)
+                .frame(height: 54)
+                .background(Color(white: 0.1).opacity(0.6))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color(white: 0.2), lineWidth: 0.5)
+                )
+            }
+        }
+    }
+}
+
+@available(iOS 17.0, *)
+private struct ForgotPasswordButton: View {
+    var body: some View {
+        HStack {
+            Spacer()
+            Button("Forgot password?") { }
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.gray)
+        }
+    }
+}
+
+@available(iOS 17.0, *)
+private struct SignInButton: View {
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Text("Sign in")
+                    .font(.system(size: 16, weight: .semibold))
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 14, weight: .bold))
+            }
+            .foregroundColor(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
+            .background(
+                #available(iOS 26.0, *) ? 
+                AnyView(EmptyView().glassEffect(.regular.interactive(), in: .rect(cornerRadius: 14))) :
+                AnyView(Color(white: 0.15).opacity(0.9).clipShape(RoundedRectangle(cornerRadius: 14)))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(Color(white: 0.3).opacity(0.5), lineWidth: 0.5)
+            )
+        }
+    }
+}
+
+@available(iOS 17.0, *)
+private struct SocialContinueSection: View {
+    let namespace: Namespace.ID
+    
+    var body: some View {
+        VStack(spacing: 24) {
+            HStack {
+                Rectangle().fill(Color.gray.opacity(0.2)).frame(height: 0.5)
+                Text("or continue with")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                    .padding(.horizontal, 12)
+                Rectangle().fill(Color.gray.opacity(0.2)).frame(height: 0.5)
+            }
+            
+            HStack(spacing: 20) {
+                SocialIcon(icon: "github", namespace: namespace)
+                SocialIcon(icon: "google", namespace: namespace)
+                SocialIcon(icon: "apple.logo", namespace: namespace)
+            }
+        }
+    }
+}
+
+@available(iOS 17.0, *)
+private struct SocialIcon: View {
+    let icon: String
+    let namespace: Namespace.ID
+    
+    var body: some View {
+        Button(action: {}) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(.white)
+                .frame(width: 48, height: 48)
+                .background(
+                    #available(iOS 26.0, *) ? 
+                    AnyView(EmptyView().glassEffect(.regular.interactive(), in: .circle)) :
+                    AnyView(Circle().fill(Color(white: 0.1)))
+                )
+                .overlay(Circle().stroke(Color(white: 0.2), lineWidth: 0.5))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+@available(iOS 17.0, *)
+private struct FooterSection: View {
+    var body: some View {
+        HStack {
+            Spacer()
+            HStack(spacing: 4) {
+                Text("No account?")
+                    .foregroundColor(.gray)
+                Button("Sign up") { }
+                    .foregroundColor(.white)
+                    .fontWeight(.semibold)
+            }
+            .font(.system(size: 14))
+            Spacer()
+        }
+        .padding(.bottom, 32)
+    }
+}
+
 #Preview {
-    EmailLoginView()
+    if #available(iOS 17.0, *) {
+        EmailLoginView()
+    }
 }

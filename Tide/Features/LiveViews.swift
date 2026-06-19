@@ -16,7 +16,7 @@ struct LiveHubView: View {
                                 Image(systemName: stream.symbol).font(.system(size: 50))
                                 VStack {
                                     HStack {
-                                        Text(stream.isLive ? "LIVE" : "SOON")
+                                        Text(stream.isLive ? "В ЭФИРЕ" : "СКОРО")
                                             .font(.caption.bold()).padding(6)
                                             .background(stream.isLive ? TidePalette.ink : Color.secondary, in: Capsule())
                                             .foregroundStyle(TidePalette.inverse)
@@ -27,7 +27,7 @@ struct LiveHubView: View {
                                 .padding(8)
                             }
                             Text(stream.title).font(.headline).lineLimit(2)
-                            Text("\(stream.host.name) · \(stream.viewerCount.formatted(.number.notation(.compactName))) watching")
+                            Text("\(stream.host.name) · \(stream.viewerCount.formatted(.number.notation(.compactName))) зрителей")
                                 .font(.caption).foregroundStyle(.secondary).lineLimit(1)
                         }
                     }
@@ -38,7 +38,7 @@ struct LiveHubView: View {
         }
         .searchable(text: $query, prompt: "Streams and creators")
         .navigationTitle("Tide Live")
-        .toolbar { Button("Go Live") { presentedSheet = .create } }
+        .toolbar { Button("В эфир") { presentedSheet = .create } }
         .sheet(item: $presentedSheet) { sheet in
             switch sheet {
             case .create:
@@ -69,7 +69,7 @@ struct LiveViewer: View {
                     Text(stream.title).fontWeight(.semibold)
                     Spacer()
                     Text(stream.viewerCount.formatted())
-                    Button(isFollowing ? "Following" : "Follow") { isFollowing.toggle() }.buttonStyle(.bordered)
+                    Button(isFollowing ? "Вы подписаны" : "Подписаться") { isFollowing.toggle() }.buttonStyle(.bordered)
                 }
                 .foregroundStyle(.white)
                 Spacer()
@@ -78,7 +78,7 @@ struct LiveViewer: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 HStack {
-                    TextField("Say something", text: $message)
+                    TextField("Написать сообщение", text: $message)
                         .padding(.horizontal, 12).padding(.vertical, 9)
                         .background(.white.opacity(0.15), in: Capsule()).foregroundStyle(.white)
                     Button { send() } label: { Image(systemName: "paperplane.fill").foregroundStyle(.white) }.disabled(message.isEmpty)
@@ -97,7 +97,7 @@ struct LiveViewer: View {
     }
 
     private func send() {
-        messages.append("you: \(message)")
+        messages.append("вы: \(message)")
         message = ""
     }
 }
@@ -118,22 +118,22 @@ struct CreateLiveView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Broadcast") {
-                    TextField("Title", text: $title)
-                    Picker("Category", selection: $category) {
-                        ForEach(["Creative", "Music", "Technology", "News", "Gaming"], id: \.self) { Text($0).tag($0) }
+                Section("Трансляция") {
+                    TextField("Заголовок", text: $title)
+                    Picker("Категория", selection: $category) {
+                        ForEach(["Творчество", "Музыка", "Технологии", "Новости", "Игры"], id: \.self) { Text($0).tag($0) }
                     }
-                    Toggle("Private stream", isOn: $isPrivate)
+                    Toggle("Приватная трансляция", isOn: $isPrivate)
                 }
                 Section {
-                    Label("Camera and microphone permissions will be requested when the broadcast begins.", systemImage: "video.fill")
+                    Label("Разрешение на камеру и микрофон будет запрошено при старте эфира.", systemImage: "video.fill")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("Go Live")
+            .navigationTitle("В эфир")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Start", action: start).disabled(title.isEmpty) }
+                ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Старт", action: start).disabled(title.isEmpty) }
             }
         }
     }

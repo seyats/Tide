@@ -13,25 +13,27 @@ struct ReportView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Reason") {
-                    Picker("Reason", selection: $reason) {
+                Section("Причина") {
+                    Picker("Причина", selection: $reason) {
                         ForEach(ReportReason.allCases) { Text($0.title).tag($0) }
                     }
                 }
-                Section("Details") {
-                    TextField("Describe the problem", text: $details, axis: .vertical).lineLimit(4...8)
+                Section("Детали") {
+                    TextField("Опишите проблему", text: $details, axis: .vertical)
+                        .lineLimit(4...8)
                 }
                 Section {
-                    Label("Reports are reviewed by Tide moderators and stored in the encrypted app database.", systemImage: "shield.lefthalf.filled")
-                        .font(.footnote).foregroundStyle(.secondary)
+                    Label("Жалобы проверяют модераторы Tide, а данные хранятся в зашифрованной базе приложения.", systemImage: "shield.lefthalf.filled")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
                 }
             }
-            .navigationTitle("Report")
+            .navigationTitle("Жалоба")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Send", action: submit) }
+                ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Отправить", action: submit) }
             }
-            .alert("Report sent", isPresented: $submitted) { Button("Done") { dismiss() } }
+            .alert("Жалоба отправлена", isPresented: $submitted) { Button("Готово") { dismiss() } }
         }
     }
 
@@ -51,31 +53,45 @@ struct AdminAccessView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 24) {
-                Image(systemName: "lock.shield.fill").font(.system(size: 54))
-                Text(dependencies.adminAccess.hasPIN ? "Administrator Access" : "Create Administrator PIN")
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 54))
+                Text(dependencies.adminAccess.hasPIN ? "Доступ администратора" : "Создать PIN администратора")
                     .font(TideTypography.title)
-                SecureField("4-digit PIN", text: $pin)
-                    .keyboardType(.numberPad).textContentType(.oneTimeCode)
-                    .padding().tideSurface(cornerRadius: 16)
+                SecureField("4-значный PIN", text: $pin)
+                    .keyboardType(.numberPad)
+                    .textContentType(.oneTimeCode)
+                    .padding()
+                    .tideSurface(cornerRadius: 16)
                 if !dependencies.adminAccess.hasPIN {
-                    SecureField("Repeat PIN", text: $confirmation)
-                        .keyboardType(.numberPad).padding().tideSurface(cornerRadius: 16)
+                    SecureField("Повторите PIN", text: $confirmation)
+                        .keyboardType(.numberPad)
+                        .padding()
+                        .tideSurface(cornerRadius: 16)
                 }
-                if let error = dependencies.adminAccess.errorMessage { Text(error).foregroundStyle(.red).font(.footnote) }
-                Button(dependencies.adminAccess.hasPIN ? "Unlock" : "Create PIN", action: authenticate)
-                    .buttonStyle(TidePrimaryButtonStyle()).frame(maxWidth: .infinity)
+                if let error = dependencies.adminAccess.errorMessage {
+                    Text(error)
+                        .foregroundStyle(.red)
+                        .font(.footnote)
+                }
+                Button(dependencies.adminAccess.hasPIN ? "Разблокировать" : "Создать PIN", action: authenticate)
+                    .buttonStyle(TidePrimaryButtonStyle())
+                    .frame(maxWidth: .infinity)
                     .disabled(pin.count != 4 || (!dependencies.adminAccess.hasPIN && pin != confirmation))
                 if dependencies.adminAccess.hasPIN {
-                    Button("Use Face ID or Touch ID") {
-                        Task { if await dependencies.adminAccess.authenticateWithBiometrics() { openAdmin() } }
+                    Button("Использовать Face ID или Touch ID") {
+                        Task {
+                            if await dependencies.adminAccess.authenticateWithBiometrics() {
+                                openAdmin()
+                            }
+                        }
                     }
                     .buttonStyle(TideSecondaryButtonStyle())
                 }
                 Spacer()
             }
             .padding(24)
-            .navigationTitle("Security")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .navigationTitle("Безопасность")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } } }
         }
         .presentationDetents([.large])
     }
@@ -99,7 +115,7 @@ struct AdminView: View {
         Group {
             if dependencies.adminAccess.isUnlocked {
                 List {
-                    Picker("Section", selection: $section) {
+                    Picker("Раздел", selection: $section) {
                         ForEach(AdminSection.allCases) { Label($0.title, systemImage: $0.symbol).tag($0) }
                     }
                     .pickerStyle(.menu)
@@ -112,29 +128,34 @@ struct AdminView: View {
                     case .system: system
                     }
                 }
-                .navigationTitle("Administration")
-                .toolbar { Button("Lock") { dependencies.adminAccess.lock() } }
+                .navigationTitle("Администрирование")
+                .toolbar { Button("Заблокировать") { dependencies.adminAccess.lock() } }
             } else {
-                ContentUnavailableView("Administrator access required", systemImage: "lock.shield")
-                    .toolbar { Button("Unlock") { dependencies.router.sheet = .adminAccess } }
+                ContentUnavailableView("Требуется доступ администратора", systemImage: "lock.shield")
+                    .toolbar { Button("Разблокировать") { dependencies.router.sheet = .adminAccess } }
             }
         }
     }
 
     private var dashboard: some View {
-        Section("Overview") {
+        Section("Обзор") {
             let metrics = [
-                AdminMetric(title: "Users", value: dependencies.database.users().count, symbol: "person.3.fill"),
-                AdminMetric(title: "Posts", value: dependencies.database.posts(includeRemoved: true).count, symbol: "doc.text.fill"),
-                AdminMetric(title: "Chats", value: dependencies.database.chats().count, symbol: "bubble.left.and.bubble.right.fill"),
-                AdminMetric(title: "Open reports", value: dependencies.moderation.openReports.count, symbol: "exclamationmark.shield.fill")
+                AdminMetric(title: "Пользователи", value: dependencies.database.users().count, symbol: "person.3.fill"),
+                AdminMetric(title: "Посты", value: dependencies.database.posts(includeRemoved: true).count, symbol: "doc.text.fill"),
+                AdminMetric(title: "Чаты", value: dependencies.database.chats().count, symbol: "bubble.left.and.bubble.right.fill"),
+                AdminMetric(title: "Открытые жалобы", value: dependencies.moderation.openReports.count, symbol: "exclamationmark.shield.fill")
             ]
             ForEach(metrics) { metric in
-                HStack { Label(metric.title, systemImage: metric.symbol); Spacer(); Text(metric.value.formatted()).font(.title3.bold()) }
+                HStack {
+                    Label(metric.title, systemImage: metric.symbol)
+                    Spacer()
+                    Text(metric.value.formatted()).font(.title3.bold())
+                }
             }
             Chart(weeklyActivity) { value in
-                LineMark(x: .value("Day", value.day), y: .value("Events", value.count)).interpolationMethod(.catmullRom)
-                AreaMark(x: .value("Day", value.day), y: .value("Events", value.count)).foregroundStyle(.linearGradient(colors: [.primary.opacity(0.2), .clear], startPoint: .top, endPoint: .bottom))
+                LineMark(x: .value("День", value.day), y: .value("События", value.count)).interpolationMethod(.catmullRom)
+                AreaMark(x: .value("День", value.day), y: .value("События", value.count))
+                    .foregroundStyle(.linearGradient(colors: [.primary.opacity(0.2), .clear], startPoint: .top, endPoint: .bottom))
             }
             .frame(height: 180)
             .chartLegend(.hidden)
@@ -142,14 +163,14 @@ struct AdminView: View {
     }
 
     private var users: some View {
-        Section("Users") {
+        Section("Пользователи") {
             ForEach(dependencies.database.users()) { user in
                 HStack {
                     UserRow(user: user)
                     Menu {
-                        Button(user.isVerified ? "Remove verification" : "Verify") { toggleVerification(user) }
-                        Button("Restrict") { setStatus(user, .restricted) }
-                        Button("Suspend", role: .destructive) { setStatus(user, .suspended) }
+                        Button(user.isVerified ? "Снять верификацию" : "Верифицировать") { toggleVerification(user) }
+                        Button("Ограничить") { setStatus(user, .restricted) }
+                        Button("Заблокировать", role: .destructive) { setStatus(user, .suspended) }
                     } label: { Image(systemName: "ellipsis.circle") }
                 }
             }
@@ -157,7 +178,7 @@ struct AdminView: View {
     }
 
     private var content: some View {
-        Section("Content") {
+        Section("Контент") {
             ForEach(dependencies.database.posts(includeRemoved: true)) { post in
                 VStack(alignment: .leading, spacing: 8) {
                     Text(post.body).lineLimit(3)
@@ -165,7 +186,7 @@ struct AdminView: View {
                         Text(post.author.handle).font(.caption).foregroundStyle(.secondary)
                         Spacer()
                         Text(post.moderationState.rawValue).font(.caption)
-                        Button("Remove", role: .destructive) {
+                        Button("Удалить", role: .destructive) {
                             guard let moderatorID = dependencies.session.currentUser?.id else { return }
                             dependencies.social.deletePost(post.id, actorID: moderatorID)
                         }
@@ -176,13 +197,17 @@ struct AdminView: View {
     }
 
     private var reports: some View {
-        Section("Reports") {
-            if dependencies.moderation.openReports.isEmpty { ContentUnavailableView("Queue is clear", systemImage: "checkmark.shield") }
+        Section("Жалобы") {
+            if dependencies.moderation.openReports.isEmpty {
+                ContentUnavailableView("Очередь пуста", systemImage: "checkmark.shield")
+            }
             ForEach(dependencies.moderation.openReports) { report in
                 NavigationLink(value: AppRoute.moderation(report.id)) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(report.reason.title).fontWeight(.semibold)
-                        Text("\(report.targetType) · \(report.createdAt.formatted(.relative(presentation: .named)))").font(.caption).foregroundStyle(.secondary)
+                        Text("\(report.targetType) · \(report.createdAt.formatted(.relative(presentation: .named)))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
             }
@@ -190,21 +215,21 @@ struct AdminView: View {
     }
 
     private var broadcast: some View {
-        Section("Global notification") { AdminBroadcastView() }
+        Section("Глобальное уведомление") { AdminBroadcastView() }
     }
 
     private var system: some View {
-        Section("System") {
+        Section("Система") {
             LabeledContent("WebSocket", value: connectionText)
-            LabeledContent("Local database", value: dependencies.database.lastError == nil ? "Healthy" : "Error")
-            LabeledContent("Persistent models", value: "14")
-            LabeledContent("Audit events", value: dependencies.database.auditEvents().count.formatted())
-            LabeledContent("Server mode", value: ServerConfiguration.current.isRemoteEnabled ? "Remote + offline" : "Offline")
+            LabeledContent("Локальная база", value: dependencies.database.lastError == nil ? "ОК" : "Ошибка")
+            LabeledContent("Постоянные модели", value: "14")
+            LabeledContent("События аудита", value: dependencies.database.auditEvents().count.formatted())
+            LabeledContent("Режим сервера", value: ServerConfiguration.current.isRemoteEnabled ? "Удалённый + офлайн" : "Офлайн")
         }
     }
 
     private var connectionText: String {
-        dependencies.messenger.connectionState == .connected ? "Connected" : "Offline"
+        dependencies.messenger.connectionState == .connected ? "Подключено" : "Офлайн"
     }
 
     private var weeklyActivity: [ActivityPoint] {
@@ -231,17 +256,17 @@ struct ModerationDetailView: View {
     var body: some View {
         if let report = dependencies.moderation.reports.first(where: { $0.id == reportID }) {
             Form {
-                Section("Report") {
-                    LabeledContent("Reason", value: report.reason.title)
-                    LabeledContent("Type", value: report.targetType)
-                    LabeledContent("Status", value: report.status.rawValue)
-                    Text(report.details.isEmpty ? "No additional details" : report.details)
+                Section("Жалоба") {
+                    LabeledContent("Причина", value: report.reason.title)
+                    LabeledContent("Тип", value: report.targetType)
+                    LabeledContent("Статус", value: report.status.rawValue)
+                    Text(report.details.isEmpty ? "Дополнительных деталей нет" : report.details)
                 }
-                Section("Actions") {
-                    Button("Dismiss") { resolve(.dismissed) }
-                    Button("Resolve") { resolve(.resolved) }
+                Section("Действия") {
+                    Button("Отклонить") { resolve(.dismissed) }
+                    Button("Закрыть") { resolve(.resolved) }
                     if report.targetType == "post" {
-                        Button("Remove content", role: .destructive) {
+                        Button("Удалить контент", role: .destructive) {
                             guard let moderatorID = dependencies.session.currentUser?.id else { return }
                             dependencies.social.deletePost(report.targetID, actorID: moderatorID)
                             resolve(.resolved)
@@ -249,9 +274,9 @@ struct ModerationDetailView: View {
                     }
                 }
             }
-            .navigationTitle("Moderation")
+            .navigationTitle("Модерация")
         } else {
-            ContentUnavailableView("Report unavailable", systemImage: "exclamationmark.shield")
+            ContentUnavailableView("Жалоба недоступна", systemImage: "exclamationmark.shield")
         }
     }
 
@@ -268,9 +293,9 @@ struct AdminBroadcastView: View {
     @State private var sent = false
 
     var body: some View {
-        TextField("Title", text: $title)
-        TextField("Message", text: $bodyText, axis: .vertical).lineLimit(3...6)
-        Button("Send to this device") {
+        TextField("Заголовок", text: $title)
+        TextField("Сообщение", text: $bodyText, axis: .vertical).lineLimit(3...6)
+        Button("Отправить на это устройство") {
             dependencies.notifications.add(kind: .system, title: title, body: bodyText)
             Task { await dependencies.push.scheduleLocal(title: title, body: bodyText) }
             title = ""
@@ -278,7 +303,7 @@ struct AdminBroadcastView: View {
             sent = true
         }
         .disabled(title.isEmpty || bodyText.isEmpty)
-        if sent { Label("Notification queued", systemImage: "checkmark.circle.fill") }
+        if sent { Label("Уведомление поставлено в очередь", systemImage: "checkmark.circle.fill") }
     }
 }
 

@@ -15,7 +15,7 @@ struct FeedView: View {
                     if selection == "feed_trends" {
                         TrendsView()
                     } else if social.filteredPosts.isEmpty {
-                        EmptyStateView(symbol: "text.page", title: "No posts", message: "Follow people or create the first post.")
+                        EmptyStateView(symbol: "text.page", title: "Постов нет", message: "Подпишитесь на людей или создайте первый пост.")
                     } else {
                         ForEach(filteredPosts) { post in
                             PostCard(post: post)
@@ -122,9 +122,9 @@ struct PostCard: View {
                         .foregroundStyle(.secondary).lineLimit(1)
                     Spacer()
                     Menu {
-                        Button("Report", role: .destructive) { dependencies.router.sheet = .report(post.id, "post") }
+                        Button("Пожаловаться", role: .destructive) { dependencies.router.sheet = .report(post.id, "post") }
                         if post.author.id == dependencies.session.currentUser?.id {
-                            Button("Delete", role: .destructive) {
+                            Button("Удалить", role: .destructive) {
                                 if let actorID = dependencies.session.currentUser?.id { dependencies.social.deletePost(post.id, actorID: actorID) }
                             }
                         }
@@ -199,19 +199,19 @@ struct ComposerView: View {
                         HStack {
                             AvatarView(user: dependencies.session.currentUser ?? User(id: UUID(), name: "Tide", username: "tide", biography: "", avatarSymbol: "person.crop.circle.fill", isVerified: false, isAdministrator: false, followers: 0, following: 0, joinedAt: .now, coverSymbol: "water"), size: 38)
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("new_post_identity")
-                                    .font(.caption).foregroundStyle(.secondary)
+                        Text("Публикует")
+                            .font(.caption).foregroundStyle(.secondary)
                                 Text(dependencies.session.currentUser?.handle ?? "@tide")
                                     .font(.subheadline.weight(.semibold))
                             }
                             Spacer()
-                            TextField(String(localized: "new_post_location"), text: $location)
+                            TextField("Локация", text: $location)
                                 .frame(width: 120)
                                 .textInputAutocapitalization(.never)
                         }
                         ZStack(alignment: .topLeading) {
                             if bodyText.isEmpty {
-                                Text("new_post_placeholder")
+                                Text("Что у вас нового?")
                                     .foregroundStyle(.secondary)
                                     .padding(.top, 8)
                                     .padding(.leading, 5)
@@ -222,9 +222,9 @@ struct ComposerView: View {
                         }
                         if !selectedMedia.isEmpty { ComposerMediaStrip(media: selectedMedia, remove: removeMedia) }
                         HStack(spacing: 10) {
-                            actionTile(symbol: "photo.on.rectangle", title: "new_post_media")
-                            actionTile(symbol: "location.fill", title: "new_post_location")
-                            actionTile(symbol: "clock.badge.checkmark", title: "new_post_schedule")
+                            actionTile(symbol: "photo.on.rectangle", title: "Медиа")
+                            actionTile(symbol: "location.fill", title: "Локация")
+                            actionTile(symbol: "clock.badge.checkmark", title: "Запланировать")
                         }
                     }
                 } header: {
@@ -232,21 +232,21 @@ struct ComposerView: View {
                 }
                 Section {
                     PhotosPicker(selection: $selectedItems, maxSelectionCount: 10, matching: .any(of: [.images, .videos])) {
-                        Label("new_post_add_media", systemImage: "photo.on.rectangle")
+                        Label("Добавить медиа", systemImage: "photo.on.rectangle")
                     }
-                    if isImporting { ProgressView("Importing media") }
+                    if isImporting { ProgressView("Импорт медиа") }
                 }
-                Picker("Visibility", selection: $visibility) {
+                Picker("Видимость", selection: $visibility) {
                     ForEach(PostVisibility.allCases) { Text($0.title).tag($0) }
                 }
             }
-            .navigationTitle(String(localized: "new_post_title"))
+            .navigationTitle("Новый пост")
             .navigationBarTitleDisplayMode(.inline)
             .scrollContentBackground(.hidden)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button(String(localized: "action_cancel")) { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button(String(localized: "new_post_publish"), action: publish)
+                    Button("Опубликовать", action: publish)
                         .disabled(bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedMedia.isEmpty)
                 }
             }
@@ -315,9 +315,9 @@ struct PostDetailView: View {
             if let post = dependencies.social.posts.first(where: { $0.id == postID }) {
                 List {
                     PostCard(post: post).listRowInsets(EdgeInsets()).listRowSeparator(.hidden)
-                    Section("Replies") {
+                    Section("Ответы") {
                         if comments.isEmpty {
-                            ContentUnavailableView("No replies", systemImage: "bubble.left", description: Text("Start the conversation."))
+                            ContentUnavailableView("Ответов нет", systemImage: "bubble.left", description: Text("Начните разговор."))
                         }
                         ForEach(comments) { comment in
                             VStack(alignment: .leading, spacing: 7) {
@@ -330,18 +330,18 @@ struct PostDetailView: View {
                 .scrollContentBackground(.hidden)
                 .safeAreaInset(edge: .bottom) {
                     HStack {
-                        TextField("Post your reply", text: $reply)
-                        Button("Send", action: sendReply)
+                        TextField("Ваш ответ", text: $reply)
+                        Button("Отправить", action: sendReply)
                             .disabled(reply.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
                     .padding()
                     .background(.bar)
                 }
             } else {
-                EmptyStateView(symbol: "exclamationmark.triangle", title: "Post unavailable", message: "It may have been deleted.")
+                EmptyStateView(symbol: "exclamationmark.triangle", title: "Пост недоступен", message: "Возможно, он был удалён.")
             }
         }
-        .navigationTitle("Post")
+        .navigationTitle("Пост")
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -354,7 +354,7 @@ struct PostDetailView: View {
 
 struct TrendsView: View {
     var body: some View {
-        ContentUnavailableView("No trends yet", systemImage: "chart.bar.xaxis", description: Text("Trending topics will appear when real posts arrive."))
+        ContentUnavailableView("Трендов пока нет", systemImage: "chart.bar.xaxis", description: Text("Популярные темы появятся, когда в ленте будет больше живого контента."))
             .frame(maxWidth: .infinity)
             .padding(.vertical, 40)
     }

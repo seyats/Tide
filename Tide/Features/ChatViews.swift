@@ -23,19 +23,19 @@ struct ChatListView: View {
                 } label: { ChatRow(chat: chat) }
                     .buttonStyle(.plain)
                     .swipeActions(edge: .leading) {
-                        Button { messenger.togglePin(chat.id) } label: { Label(chat.isPinned ? "Unpin" : "Pin", systemImage: "pin") }
-                        Button { messenger.toggleMute(chat.id) } label: { Label(chat.isMuted ? "Unmute" : "Mute", systemImage: "bell.slash") }
+                        Button { messenger.togglePin(chat.id) } label: { Label(chat.isPinned ? "Открепить" : "Закрепить", systemImage: "pin") }
+                        Button { messenger.toggleMute(chat.id) } label: { Label(chat.isMuted ? "Включить звук" : "Выключить звук", systemImage: "bell.slash") }
                     }
                     .swipeActions(edge: .trailing) {
-                        Button("Delete", role: .destructive) { messenger.delete(chat.id) }
-                        Button("Archive") { messenger.archive(chat.id) }.tint(.secondary)
+                        Button("Удалить", role: .destructive) { messenger.delete(chat.id) }
+                        Button("В архив") { messenger.archive(chat.id) }.tint(.secondary)
                     }
-            }
+                }
         }
         .listStyle(.plain)
-        .searchable(text: $messenger.query, prompt: "Chats and messages")
+        .searchable(text: $messenger.query, prompt: "Чаты и сообщения")
         .refreshable { messenger.reload() }
-        .navigationTitle("Chats")
+        .navigationTitle("Чаты")
         .scrollContentBackground(.hidden)
         .toolbar { Button { dependencies.router.sheet = .newMessage } label: { Image(systemName: "square.and.pencil") } }
     }
@@ -65,7 +65,7 @@ struct ChatRow: View {
                 }
                 HStack {
                     if chat.lastMessage?.attachmentKind != .none { Image(systemName: "paperclip").foregroundStyle(.secondary) }
-                    Text(chat.lastMessage?.body.isEmpty == false ? chat.lastMessage?.body ?? "" : "Attachment")
+                    Text(chat.lastMessage?.body.isEmpty == false ? chat.lastMessage?.body ?? "" : "Вложение")
                         .foregroundStyle(.secondary).lineLimit(1)
                     Spacer()
                     if chat.unreadCount > 0 {
@@ -129,7 +129,7 @@ struct ConversationView: View {
                 }
             }
         } else {
-            EmptyStateView(symbol: "bubble.left", title: "Chat unavailable", message: "This conversation no longer exists.")
+            EmptyStateView(symbol: "bubble.left", title: "Чат недоступен", message: "Эта беседа больше не существует.")
         }
     }
 
@@ -138,7 +138,7 @@ struct ConversationView: View {
             if let replyTo {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Replying").font(.caption.bold())
+                        Text("Ответ на").font(.caption.bold())
                         Text(replyTo.body).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                     }
                     Spacer()
@@ -158,7 +158,7 @@ struct ConversationView: View {
                 PhotosPicker(selection: $selectedItem, matching: .any(of: [.images, .videos])) {
                     Image(systemName: "plus.circle.fill").font(.title2)
                 }
-                TextField("Message", text: $draft, axis: .vertical)
+                TextField("Сообщение", text: $draft, axis: .vertical)
                     .lineLimit(1...5)
                     .padding(.horizontal, 12)
                     .padding(.vertical, 9)
@@ -207,7 +207,7 @@ struct MessageBubble: View {
             if isOutgoing { Spacer(minLength: 52) }
             VStack(alignment: .leading, spacing: 6) {
                 if message.replyToMessageID != nil {
-                    Label("Reply", systemImage: "arrowshape.turn.up.left.fill")
+                Label("Ответ", systemImage: "arrowshape.turn.up.left.fill")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
                 if message.attachmentKind != .none, let url = message.attachmentURL {
@@ -222,7 +222,7 @@ struct MessageBubble: View {
                 }
                 if !message.body.isEmpty { Text(message.body) }
                 HStack(spacing: 4) {
-                    if message.isEdited { Text("edited") }
+                    if message.isEdited { Text("изменено") }
                     Text(message.sentAt.formatted(date: .omitted, time: .shortened))
                     if isOutgoing { deliverySymbol }
                 }
@@ -236,17 +236,17 @@ struct MessageBubble: View {
             .background(isOutgoing ? TidePalette.ink : TidePalette.subtle, in: RoundedRectangle(cornerRadius: 18))
             .foregroundStyle(isOutgoing ? TidePalette.inverse : TidePalette.ink)
             .contextMenu {
-                Button("Reply", systemImage: "arrowshape.turn.up.left", action: reply)
-                Menu("React") {
+                Button("Ответить", systemImage: "arrowshape.turn.up.left", action: reply)
+                Menu("Реакция") {
                     ForEach(["❤", "🔥", "😂", "😮", "😢", "👏"], id: \.self) { reaction in
                         Button(reaction) { dependencies.messenger.react(reaction, messageID: message.id, chatID: chatID) }
                     }
                 }
-                Button("Report", systemImage: "exclamationmark.bubble", role: .destructive) {
+                Button("Пожаловаться", systemImage: "exclamationmark.bubble", role: .destructive) {
                     dependencies.router.sheet = .report(message.id, "message")
                 }
                 if isOutgoing {
-                    Button("Delete", systemImage: "trash", role: .destructive) {
+                    Button("Удалить", systemImage: "trash", role: .destructive) {
                         dependencies.messenger.deleteMessage(message.id, chatID: chatID)
                     }
                 }
@@ -277,9 +277,9 @@ struct NewMessageView: View {
             List(filteredUsers) { user in
                 Button { createChat(with: user) } label: { UserRow(user: user) }.buttonStyle(.plain)
             }
-            .searchable(text: $query, prompt: "Name or username")
-            .navigationTitle("New Message")
-            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } } }
+            .searchable(text: $query, prompt: "Имя или ник")
+            .navigationTitle("Новое сообщение")
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } } }
         }
     }
 

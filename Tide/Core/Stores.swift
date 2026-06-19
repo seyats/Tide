@@ -50,7 +50,11 @@ final class SessionStore {
             return
         }
         let name = displayName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let createdUser = Self.makeUser(name: name?.isEmpty == false ? name! : Self.fallbackName(from: normalizedEmail), username: Self.fallbackUsername(from: normalizedEmail), biography: "Joined Tide from email sign in")
+        let createdUser = Self.makeUser(
+            name: name?.isEmpty == false ? name! : Self.fallbackName(from: normalizedEmail),
+            username: Self.fallbackUsername(from: normalizedEmail),
+            biography: "Присоединился к Tide через вход по почте"
+        )
         database?.createUser(createdUser)
         try? SecureStore.set(hash, account: account)
         try? SecureStore.set(createdUser.id.uuidString, account: "\(account).user")
@@ -75,7 +79,7 @@ final class SessionStore {
         let createdUser = Self.makeUser(
             name: name?.isEmpty == false ? name! : Self.fallbackName(from: fallbackEmail ?? userIdentifier),
             username: Self.fallbackUsername(from: fallbackEmail ?? userIdentifier),
-            biography: "Joined Tide with Apple"
+            biography: "Присоединился к Tide через Apple"
         )
         database?.createUser(createdUser)
         try? SecureStore.set(createdUser.id.uuidString, account: "\(account).user")
@@ -104,7 +108,7 @@ final class SessionStore {
         let createdUser = Self.makeUser(
             name: name?.isEmpty == false ? name! : Self.fallbackName(from: normalizedEmail),
             username: Self.fallbackUsername(from: normalizedEmail),
-            biography: "Joined Tide with Google"
+            biography: "Присоединился к Tide через Google"
         )
         database?.createUser(createdUser)
         try? SecureStore.set(createdUser.id.uuidString, account: "\(account).user")

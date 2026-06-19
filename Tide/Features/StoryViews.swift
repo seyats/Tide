@@ -24,19 +24,27 @@ struct StoryViewer: View {
                         AvatarView(user: story.author)
                         VStack(alignment: .leading) {
                             VerifiedName(user: story.author).foregroundStyle(.white)
-                            Text(story.createdAt.formatted(.relative(presentation: .named))).font(.caption).foregroundStyle(.white.opacity(0.7))
+                            Text(story.createdAt.formatted(.relative(presentation: .named)))
+                                .font(.caption)
+                                .foregroundStyle(.white.opacity(0.7))
                         }
                         Spacer()
                         Button { dismiss() } label: { Image(systemName: "xmark").font(.title2).foregroundStyle(.white) }
                     }
                     Spacer()
                     if !story.caption.isEmpty {
-                        Text(story.caption).font(.title3.bold()).foregroundStyle(.white).multilineTextAlignment(.center).padding()
+                        Text(story.caption)
+                            .font(.title3.bold())
+                            .foregroundStyle(.white)
+                            .multilineTextAlignment(.center)
+                            .padding()
                     }
                     HStack {
-                        TextField("Reply…", text: $reply)
-                            .padding(.horizontal, 14).padding(.vertical, 10)
-                            .background(.white.opacity(0.16), in: Capsule()).foregroundStyle(.white)
+                        TextField("Ответить…", text: $reply)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 10)
+                            .background(.white.opacity(0.16), in: Capsule())
+                            .foregroundStyle(.white)
                         Button { sendReply(to: story) } label: { Image(systemName: "paperplane.fill").foregroundStyle(.white) }
                             .disabled(reply.isEmpty)
                         Button { react(to: story) } label: { Image(systemName: hasReacted ? "heart.fill" : "heart").foregroundStyle(.white) }
@@ -46,7 +54,7 @@ struct StoryViewer: View {
                 .contentShape(Rectangle())
                 .onLongPressGesture(minimumDuration: 0.15, pressing: { isPaused = $0 }, perform: {})
             } else {
-                ContentUnavailableView("Story expired", systemImage: "clock.badge.xmark")
+                ContentUnavailableView("История истекла", systemImage: "clock.badge.xmark")
                     .foregroundStyle(.white)
             }
         }
@@ -75,8 +83,11 @@ struct StoryViewer: View {
                 }
             }
         } else {
-            LinearGradient(colors: [.gray.opacity(0.8), .black], startPoint: .top, endPoint: .bottom).ignoresSafeArea()
-            Image(systemName: story.symbol).font(.system(size: 110, weight: .thin)).foregroundStyle(.white)
+            LinearGradient(colors: [.gray.opacity(0.8), .black], startPoint: .top, endPoint: .bottom)
+                .ignoresSafeArea()
+            Image(systemName: story.symbol)
+                .font(.system(size: 110, weight: .thin))
+                .foregroundStyle(.white)
         }
     }
 
@@ -85,13 +96,13 @@ struct StoryViewer: View {
         let chatID = dependencies.messenger.createDirectChat(currentUser: currentUser, otherUser: story.author)
         let text = reply
         reply = ""
-        Task { await dependencies.messenger.send("Replied to your story: \(text)", to: chatID, senderID: currentUser.id) }
+        Task { await dependencies.messenger.send("Ответ на вашу историю: \(text)", to: chatID, senderID: currentUser.id) }
     }
 
     private func react(to story: Story) {
         hasReacted.toggle()
         if hasReacted {
-            dependencies.notifications.add(kind: .storyReply, title: "Story reaction sent", body: "You reacted to \(story.author.name)'s story", targetID: story.id)
+            dependencies.notifications.add(kind: .storyReply, title: "Реакция на историю отправлена", body: "Вы отреагировали на историю \(story.author.name)", targetID: story.id)
         }
     }
 }
@@ -111,24 +122,24 @@ struct StoryComposerView: View {
                     if let media {
                         PostMediaCell(media: MediaAttachment(id: media.id, kind: media.kind, url: media.url, aspectRatio: media.aspectRatio))
                     } else {
-                        ContentUnavailableView("Choose a photo or video", systemImage: "photo.on.rectangle.angled")
+                        ContentUnavailableView("Выберите фото или видео", systemImage: "photo.on.rectangle.angled")
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
-                TextField("Caption", text: $caption, axis: .vertical).textFieldStyle(.roundedBorder)
+                TextField("Подпись", text: $caption, axis: .vertical).textFieldStyle(.roundedBorder)
                 PhotosPicker(selection: $selectedItem, matching: .any(of: [.images, .videos])) {
-                    Label(media == nil ? "Choose media" : "Replace media", systemImage: "photo.badge.plus")
+                    Label(media == nil ? "Выбрать медиа" : "Заменить медиа", systemImage: "photo.badge.plus")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(TideSecondaryButtonStyle())
             }
             .padding()
-            .navigationTitle("New Story")
+            .navigationTitle("Новая история")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Publish", action: publish).disabled(media == nil || isLoading) }
+                ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Опубликовать", action: publish).disabled(media == nil || isLoading) }
             }
             .onChange(of: selectedItem) { item in
                 guard let item else { return }

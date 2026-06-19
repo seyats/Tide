@@ -16,8 +16,8 @@ enum IntentHandoff {
 }
 
 struct OpenTideIntent: AppIntent {
-    static let title: LocalizedStringResource = "Open Tide"
-    static let description = IntentDescription("Open the Tide feed.")
+    static let title: LocalizedStringResource = "Открыть Tide"
+    static let description = IntentDescription("Открыть ленту Tide.")
     static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
@@ -27,8 +27,8 @@ struct OpenTideIntent: AppIntent {
 }
 
 struct ComposeTidePostIntent: AppIntent {
-    static let title: LocalizedStringResource = "Create Tide Post"
-    static let description = IntentDescription("Open Tide directly in the post composer.")
+    static let title: LocalizedStringResource = "Создать пост в Tide"
+    static let description = IntentDescription("Открыть Tide сразу в редакторе поста.")
     static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
@@ -38,8 +38,8 @@ struct ComposeTidePostIntent: AppIntent {
 }
 
 struct OpenTideChatsIntent: AppIntent {
-    static let title: LocalizedStringResource = "Open Tide Chats"
-    static let description = IntentDescription("Open your Tide conversations.")
+    static let title: LocalizedStringResource = "Открыть чаты Tide"
+    static let description = IntentDescription("Открыть ваши переписки в Tide.")
     static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
@@ -49,8 +49,8 @@ struct OpenTideChatsIntent: AppIntent {
 }
 
 struct OpenTideActivityIntent: AppIntent {
-    static let title: LocalizedStringResource = "Open Tide Activity"
-    static let description = IntentDescription("Open notifications and social activity in Tide.")
+    static let title: LocalizedStringResource = "Открыть активность Tide"
+    static let description = IntentDescription("Открыть уведомления и социальную активность в Tide.")
     static let openAppWhenRun = true
 
     func perform() async throws -> some IntentResult {
@@ -63,20 +63,20 @@ struct TideAppShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: ComposeTidePostIntent(),
-            phrases: ["Create a post in \(.applicationName)", "Compose in \(.applicationName)"],
-            shortTitle: "Create Post",
+            phrases: ["Создать пост в \(.applicationName)", "Написать в \(.applicationName)"],
+            shortTitle: "Новый пост",
             systemImageName: "square.and.pencil"
         )
         AppShortcut(
             intent: OpenTideChatsIntent(),
-            phrases: ["Open chats in \(.applicationName)", "Show my \(.applicationName) chats"],
-            shortTitle: "Open Chats",
+            phrases: ["Открыть чаты в \(.applicationName)", "Показать мои чаты в \(.applicationName)"],
+            shortTitle: "Чаты",
             systemImageName: "bubble.left.and.bubble.right"
         )
         AppShortcut(
             intent: OpenTideActivityIntent(),
-            phrases: ["Show \(.applicationName) activity", "Open \(.applicationName) notifications"],
-            shortTitle: "Open Activity",
+            phrases: ["Показать активность \(.applicationName)", "Открыть уведомления \(.applicationName)"],
+            shortTitle: "Активность",
             systemImageName: "bell"
         )
     }

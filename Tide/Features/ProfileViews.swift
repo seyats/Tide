@@ -23,7 +23,7 @@ struct ProfileView: View {
                 profileHeader
                 Section {
                     if visiblePosts.isEmpty {
-                        ContentUnavailableView("No posts", systemImage: "rectangle.stack", description: Text("Published posts will appear here."))
+                        ContentUnavailableView("Постов нет", systemImage: "rectangle.stack", description: Text("Опубликованные посты будут отображаться здесь."))
                             .padding(.top, 38)
                     }
                     ForEach(visiblePosts) { post in
@@ -31,7 +31,7 @@ struct ProfileView: View {
                         Divider().padding(.leading, 68)
                     }
                 } header: {
-                    Picker("Profile section", selection: $section) {
+                    Picker("Раздел профиля", selection: $section) {
                         ForEach(sections, id: \.self) { Text(LocalizedStringKey($0)).tag($0) }
                     }
                     .pickerStyle(.segmented)
@@ -47,8 +47,8 @@ struct ProfileView: View {
                 Button { dependencies.router.push(.settings) } label: { Image(systemName: "gearshape") }
             } else {
                 Menu {
-                    Button(profile.isBlocked ? "Unblock" : "Block", role: .destructive, action: toggleBlock)
-                    Button("Report", role: .destructive) { dependencies.router.sheet = .report(profile.id, "user") }
+                    Button(profile.isBlocked ? "Разблокировать" : "Заблокировать", role: .destructive, action: toggleBlock)
+                    Button("Пожаловаться", role: .destructive) { dependencies.router.sheet = .report(profile.id, "user") }
                 } label: { Image(systemName: "ellipsis.circle") }
             }
         }
@@ -308,7 +308,7 @@ struct SettingsView: View {
     var body: some View {
         @Bindable var preferences = dependencies.preferences
         Form {
-            Section("Appearance") {
+            Section("Оформление") {
                 Picker("Theme", selection: $preferences.theme) {
                     ForEach(PreferencesStore.Theme.allCases) { Text($0.title).tag($0) }
                 }
@@ -322,57 +322,57 @@ struct SettingsView: View {
                 TextField("Auth background resource", text: $preferences.authBackdropResourceName)
                 TextField("App logo resource", text: $preferences.brandLogoResourceName)
             }
-            Section("Notifications") {
-                Toggle("Push Notifications", isOn: $preferences.notificationsEnabled)
-                Button("Request notification access") { Task { await dependencies.push.requestAuthorization() } }
-                LabeledContent("Authorization", value: pushStatus)
+            Section("Уведомления") {
+                Toggle("Push-уведомления", isOn: $preferences.notificationsEnabled)
+                Button("Запросить доступ к уведомлениям") { Task { await dependencies.push.requestAuthorization() } }
+                LabeledContent("Статус", value: pushStatus)
                 if let token = dependencies.push.deviceToken { LabeledContent("APNs token", value: String(token.prefix(12)) + "…") }
             }
-            Section("Privacy") {
-                Toggle("Read Receipts", isOn: $preferences.readReceiptsEnabled)
-                Toggle("Hide Sensitive Content", isOn: $preferences.sensitiveContentHidden)
-                NavigationLink("Blocked Accounts") { BlockedAccountsView() }
-                NavigationLink("Active Sessions") { ActiveSessionsView() }
+            Section("Приватность") {
+                Toggle("Отчёты о прочтении", isOn: $preferences.readReceiptsEnabled)
+                Toggle("Скрывать чувствительный контент", isOn: $preferences.sensitiveContentHidden)
+                NavigationLink("Заблокированные аккаунты") { BlockedAccountsView() }
+                NavigationLink("Активные сессии") { ActiveSessionsView() }
             }
-            Section("Data") {
-                Toggle("Autoplay Video", isOn: $preferences.autoplayVideo)
-                Toggle("Upload over Cellular", isOn: $preferences.cellularUploadsEnabled)
-                LabeledContent("Storage", value: "SwiftData")
+            Section("Данные") {
+                Toggle("Автовоспроизведение видео", isOn: $preferences.autoplayVideo)
+                Toggle("Загрузка через сотовую сеть", isOn: $preferences.cellularUploadsEnabled)
+                LabeledContent("Хранилище", value: "SwiftData")
             }
-            Section("Developers") {
-                Button("Tide Bot API") { dependencies.router.push(.botPlatform) }
-                Button("Open Tide website") { dependencies.router.push(.browser(URL(string: "https://tide.app")!)) }
-                LabeledContent("Backend", value: ServerConfiguration.current.isRemoteEnabled ? "Configured" : "Offline mode")
+            Section("Разработчикам") {
+                Button("API бота Tide") { dependencies.router.push(.botPlatform) }
+                Button("Открыть сайт Tide") { dependencies.router.push(.browser(URL(string: "https://tide.app")!)) }
+                LabeledContent("Бэкенд", value: ServerConfiguration.current.isRemoteEnabled ? "Настроен" : "Офлайн режим")
             }
             if dependencies.session.currentUser?.isAdministrator == true {
-                Section("Tide") { Button("Admin Panel") { dependencies.router.sheet = .adminAccess } }
+                Section("Tide") { Button("Панель администратора") { dependencies.router.sheet = .adminAccess } }
             }
             Section {
-                Button("Log Out", role: .destructive) { dependencies.session.signOut(); dependencies.router.reset() }
-                Button("Delete Account", role: .destructive) { confirmsDeletion = true }
+                Button("Выйти", role: .destructive) { dependencies.session.signOut(); dependencies.router.reset() }
+                Button("Удалить аккаунт", role: .destructive) { confirmsDeletion = true }
             }
         }
         .navigationTitle(String(localized: "settings_title"))
         .scrollContentBackground(.hidden)
-        .confirmationDialog("Delete this local account?", isPresented: $confirmsDeletion, titleVisibility: .visible) {
-            Button("Delete Account", role: .destructive) {
+        .confirmationDialog("Удалить этот локальный аккаунт?", isPresented: $confirmsDeletion, titleVisibility: .visible) {
+            Button("Удалить аккаунт", role: .destructive) {
                 dependencies.session.signOut()
                 dependencies.router.reset()
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Отмена", role: .cancel) {}
         } message: {
-            Text("Server-side deletion must also be confirmed by your backend when remote sync is enabled.")
+            Text("Удаление на сервере тоже должно быть подтверждено бэкендом при включённой синхронизации.")
         }
     }
 
     private var pushStatus: String {
         switch dependencies.push.authorizationStatus {
-        case .authorized: "Authorized"
-        case .denied: "Denied"
-        case .provisional: "Provisional"
-        case .ephemeral: "Ephemeral"
-        case .notDetermined: "Not requested"
-        @unknown default: "Unknown"
+        case .authorized: "Разрешено"
+        case .denied: "Запрещено"
+        case .provisional: "Временно"
+        case .ephemeral: "Временный доступ"
+        case .notDetermined: "Не запрошено"
+        @unknown default: "Неизвестно"
         }
     }
 }
@@ -387,7 +387,7 @@ struct BlockedAccountsView: View {
         .scrollContentBackground(.hidden)
         .overlay {
             if !dependencies.database.users().contains(where: \.isBlocked) {
-                ContentUnavailableView("No blocked accounts", systemImage: "person.crop.circle.badge.checkmark")
+                ContentUnavailableView("Заблокированных аккаунтов нет", systemImage: "person.crop.circle.badge.checkmark")
             }
         }
         .navigationTitle(String(localized: "settings_blocked_accounts"))
@@ -399,14 +399,14 @@ struct ActiveSessionsView: View {
 
     var body: some View {
         List {
-            Label("This iPhone", systemImage: "iphone.gen3")
+            Label("Этот iPhone", systemImage: "iphone.gen3")
             if otherSessionCount > 0 {
                 ForEach(0..<otherSessionCount, id: \.self) { index in
-                    Label(index == 0 ? "Mac" : "Web Browser", systemImage: index == 0 ? "laptopcomputer" : "globe")
+                    Label(index == 0 ? "Mac" : "Веб-браузер", systemImage: index == 0 ? "laptopcomputer" : "globe")
                 }
             }
-            Section("Security") {
-                Button("Terminate Other Sessions", role: .destructive) { otherSessionCount = 0 }
+            Section("Безопасность") {
+                Button("Завершить другие сессии", role: .destructive) { otherSessionCount = 0 }
                     .disabled(otherSessionCount == 0)
             }
         }

@@ -6,27 +6,32 @@ struct NotificationsView: View {
 
     var body: some View {
         List {
-            Picker("Filter", selection: $filter) {
-                Text("All").tag(NotificationKind?.none)
-                Text("Mentions").tag(Optional(NotificationKind.mention))
-                Text("Messages").tag(Optional(NotificationKind.message))
-                Text("Social").tag(Optional(NotificationKind.like))
+            Picker("Фильтр", selection: $filter) {
+                Text("Все").tag(NotificationKind?.none)
+                Text("Упоминания").tag(Optional(NotificationKind.mention))
+                Text("Сообщения").tag(Optional(NotificationKind.message))
+                Text("Соцсеть").tag(Optional(NotificationKind.like))
             }
             .pickerStyle(.segmented)
             .listRowSeparator(.hidden)
+
             if filtered.isEmpty {
-                ContentUnavailableView("No activity", systemImage: "bell.slash", description: Text("New likes, replies and follows will appear here."))
+                ContentUnavailableView("Активности пока нет", systemImage: "bell.slash", description: Text("Новые лайки, ответы и подписки появятся здесь."))
             }
+
             ForEach(filtered) { notification in
                 Button { open(notification) } label: {
                     HStack(alignment: .top, spacing: 13) {
                         Image(systemName: symbol(for: notification.kind))
-                            .font(.title3).frame(width: 42, height: 42)
+                            .font(.title3)
+                            .frame(width: 42, height: 42)
                             .background(TidePalette.subtle, in: Circle())
                         VStack(alignment: .leading, spacing: 4) {
                             Text(notification.title).fontWeight(notification.isRead ? .regular : .bold)
                             Text(notification.body).font(.subheadline).foregroundStyle(.secondary).lineLimit(2)
-                            Text(notification.createdAt.formatted(.relative(presentation: .named))).font(.caption).foregroundStyle(.tertiary)
+                            Text(notification.createdAt.formatted(.relative(presentation: .named)))
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
                         }
                         Spacer()
                         if !notification.isRead { Circle().frame(width: 8, height: 8) }
@@ -38,10 +43,10 @@ struct NotificationsView: View {
         }
         .listStyle(.plain)
         .refreshable { dependencies.notifications.reload() }
-        .navigationTitle("Activity")
+        .navigationTitle("Активность")
         .toolbar {
             if dependencies.notifications.unreadCount > 0 {
-                Button("Read All") { dependencies.notifications.markAllRead() }
+                Button("Прочитать все") { dependencies.notifications.markAllRead() }
             }
         }
     }

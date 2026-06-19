@@ -5,7 +5,7 @@ import WebKit
 
 @MainActor
 final class BrowserController: NSObject, ObservableObject, WKNavigationDelegate, WKUIDelegate {
-    @Published var title = "Browser"
+    @Published var title = "Браузер"
     @Published var currentURL: URL?
     @Published var progress = 0.0
     @Published var canGoBack = false
@@ -54,7 +54,7 @@ final class BrowserController: NSObject, ObservableObject, WKNavigationDelegate,
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation?) {
         isLoading = false
-        title = webView.title ?? webView.url?.host() ?? "Browser"
+        title = webView.title ?? webView.url?.host() ?? "Браузер"
         currentURL = webView.url
     }
 
@@ -112,10 +112,10 @@ struct BrowserView: View {
             .navigationTitle(controller.title)
             .navigationBarTitleDisplayMode(.inline)
             .onChange(of: controller.currentURL) { _, url in address = url?.absoluteString ?? "" }
-            .alert("Unable to open page", isPresented: Binding(get: { controller.errorMessage != nil }, set: { if !$0 { controller.errorMessage = nil } })) {
-                Button("Retry") { controller.reload() }
-                Button("Cancel", role: .cancel) {}
-            } message: { Text(controller.errorMessage ?? "Unknown error") }
+            .alert("Не удалось открыть страницу", isPresented: Binding(get: { controller.errorMessage != nil }, set: { if !$0 { controller.errorMessage = nil } })) {
+                Button("Повторить") { controller.reload() }
+                Button("Отмена", role: .cancel) {}
+            } message: { Text(controller.errorMessage ?? "Неизвестная ошибка") }
     }
 
     private var addressBar: some View {
@@ -123,16 +123,22 @@ struct BrowserView: View {
             if controller.progress < 1 { ProgressView(value: controller.progress).progressViewStyle(.linear) }
             HStack(spacing: 8) {
                 Image(systemName: controller.currentURL?.scheme == "https" ? "lock.fill" : "globe")
-                    .font(.caption).foregroundStyle(.secondary)
-                TextField("Search or enter website", text: $address)
-                    .textInputAutocapitalization(.never).autocorrectionDisabled()
-                    .keyboardType(.URL).submitLabel(.go).focused($addressFocused)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                TextField("Поиск или адрес сайта", text: $address)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.URL)
+                    .submitLabel(.go)
+                    .focused($addressFocused)
                     .onSubmit { navigate() }
-                if addressFocused { Button("Cancel") { addressFocused = false; address = controller.currentURL?.absoluteString ?? "" } }
+                if addressFocused { Button("Отмена") { addressFocused = false; address = controller.currentURL?.absoluteString ?? "" } }
             }
-            .padding(.horizontal, 12).frame(minHeight: 42)
+            .padding(.horizontal, 12)
+            .frame(minHeight: 42)
             .background(TidePalette.subtle, in: RoundedRectangle(cornerRadius: 14))
-            .padding(.horizontal).padding(.vertical, 8)
+            .padding(.horizontal)
+            .padding(.vertical, 8)
             .background(.bar)
         }
     }
@@ -150,7 +156,8 @@ struct BrowserView: View {
             if let url = controller.currentURL { Link(destination: url) { Image(systemName: "safari") } }
         }
         .font(.title3)
-        .padding(.horizontal, 24).frame(height: 50)
+        .padding(.horizontal, 24)
+        .frame(height: 50)
         .background(.bar)
     }
 
@@ -187,15 +194,15 @@ struct BotPlatformView: View {
                 .padding(.vertical, 4)
                 if let docsURL {
                     NavigationLink { BrowserView(url: docsURL) } label: {
-                        Label("Bot API Documentation", systemImage: "book.closed.fill")
+                        Label("Документация Bot API", systemImage: "book.closed.fill")
                     }
                 }
-                Label("Tokens are stored in Keychain", systemImage: "key.fill")
+                Label("Токены хранятся в Keychain", systemImage: "key.fill")
                     .font(.footnote).foregroundStyle(.secondary)
             }
-            Section("Your bots") {
+            Section("Ваши боты") {
                 if bots.isEmpty {
-                    ContentUnavailableView("No bots", systemImage: "cpu", description: Text("Create a bot and connect it to your webhook server."))
+                    ContentUnavailableView("Ботов нет", systemImage: "cpu", description: Text("Создайте бота и подключите его к webhook-серверу."))
                 }
                 ForEach(bots) { bot in
                     NavigationLink {
@@ -258,21 +265,21 @@ struct CreateBotView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Identity") {
-                    TextField("Display name", text: $name)
-                    TextField("Username", text: $username).textInputAutocapitalization(.never).autocorrectionDisabled()
+                Section("Идентификация") {
+                    TextField("Отображаемое имя", text: $name)
+                    TextField("Имя пользователя", text: $username).textInputAutocapitalization(.never).autocorrectionDisabled()
                 }
-                Section("Token") {
-                    SecureField("Bot token", text: $token)
-                    Text("Create the token on your Tide Bot API server. The iOS app stores it only in Keychain.")
+                Section("Токен") {
+                    SecureField("Токен бота", text: $token)
+                    Text("Создайте токен на сервере Tide Bot API. Приложение iOS хранит его только в Keychain.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
                 if let errorMessage { Text(errorMessage).foregroundStyle(.red) }
             }
-            .navigationTitle("Create Bot")
+            .navigationTitle("Создать бота")
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
-                ToolbarItem(placement: .confirmationAction) { Button("Create", action: create).disabled(!isValid) }
+                ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
+                ToolbarItem(placement: .confirmationAction) { Button("Создать", action: create).disabled(!isValid) }
             }
         }
     }
@@ -305,28 +312,28 @@ struct BotDetailView: View {
 
     var body: some View {
         Form {
-            Section("Bot") {
-                LabeledContent("Name", value: bot.name)
-                LabeledContent("Username", value: "@\(bot.username)")
-                Toggle("Enabled", isOn: $enabled)
+            Section("Бот") {
+                LabeledContent("Имя", value: bot.name)
+                LabeledContent("Имя пользователя", value: "@\(bot.username)")
+                Toggle("Включён", isOn: $enabled)
             }
             Section("Webhook") {
                 TextField("https://example.com/tide/webhook", text: $webhook)
                     .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
-                Text("Use HTTPS and verify the X-Tide-Bot-Secret header on every update.")
+                Text("Используйте HTTPS и проверяйте заголовок X-Tide-Bot-Secret на каждом обновлении.")
                     .font(.footnote).foregroundStyle(.secondary)
             }
             Section {
-                Button("Save") {
+                Button("Сохранить") {
                     dependencies.database.updateBot(bot, webhookURL: URL(string: webhook), enabled: enabled)
                     saved = true
                 }
-                Button("Delete Bot", role: .destructive) {
+                Button("Удалить бота", role: .destructive) {
                     dependencies.database.deleteBot(bot)
                     dismiss()
                 }
             }
-            if saved { Label("Saved", systemImage: "checkmark.circle.fill") }
+            if saved { Label("Сохранено", systemImage: "checkmark.circle.fill") }
         }
         .navigationTitle(bot.name)
         .onAppear {
@@ -343,12 +350,12 @@ struct ShareView: View {
     var body: some View {
         NavigationStack {
             List {
-                ShareLink(item: url) { Label("Share with another app", systemImage: "square.and.arrow.up") }
-                Button { UIPasteboard.general.url = url; dismiss() } label: { Label("Copy Link", systemImage: "link") }
-                Link(destination: url) { Label("Open in Safari", systemImage: "safari") }
+                ShareLink(item: url) { Label("Поделиться в другом приложении", systemImage: "square.and.arrow.up") }
+                Button { UIPasteboard.general.url = url; dismiss() } label: { Label("Копировать ссылку", systemImage: "link") }
+                Link(destination: url) { Label("Открыть в Safari", systemImage: "safari") }
             }
-            .navigationTitle("Share")
-            .toolbar { Button("Done") { dismiss() } }
+            .navigationTitle("Поделиться")
+            .toolbar { Button("Готово") { dismiss() } }
         }
         .presentationDetents([.medium])
     }

@@ -119,11 +119,23 @@ private struct SocialButton: View {
     let icon: String
     let namespace: Namespace.ID
     
+    var iconURL: URL {
+        switch icon {
+        case "github":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+        case "google":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/google/default.svg")!
+        case "apple.logo":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/apple/light.svg")!
+        default:
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+        }
+    }
+    
     var body: some View {
         Button(action: {}) {
-            Image(systemName: icon)
-                .font(.system(size: 22))
-                .foregroundColor(.white)
+            SVGRemoteView(url: iconURL)
+                .frame(width: 24, height: 24)
                 .frame(width: 54, height: 54)
         }
         .buttonStyle(.plain)
@@ -136,11 +148,23 @@ private struct SocialButton: View {
 private struct SocialButtonFallback: View {
     let icon: String
     
+    var iconURL: URL {
+        switch icon {
+        case "github":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+        case "google":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/google/default.svg")!
+        case "apple.logo":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/apple/light.svg")!
+        default:
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+        }
+    }
+    
     var body: some View {
         Button(action: {}) {
-            Image(systemName: icon)
-                .font(.system(size: 22))
-                .foregroundColor(.white)
+            SVGRemoteView(url: iconURL)
+                .frame(width: 24, height: 24)
                 .frame(width: 54, height: 54)
                 .background(Color(white: 0.1).opacity(0.8))
                 .clipShape(RoundedRectangle(cornerRadius: 14))

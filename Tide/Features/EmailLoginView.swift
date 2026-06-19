@@ -222,11 +222,23 @@ private struct SocialIcon: View {
     let icon: String
     let namespace: Namespace.ID
     
+    var iconURL: URL {
+        switch icon {
+        case "github":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+        case "google":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/google/default.svg")!
+        case "apple.logo":
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/apple/light.svg")!
+        default:
+            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+        }
+    }
+    
     var body: some View {
         Button(action: {}) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(.white)
+            SVGRemoteView(url: iconURL)
+                .frame(width: 20, height: 20)
                 .frame(width: 48, height: 48)
                 .background(
                     #available(iOS 26.0, *) ? 

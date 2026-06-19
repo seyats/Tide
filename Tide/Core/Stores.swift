@@ -24,29 +24,33 @@ final class SessionStore {
         }
     }
 
-    func signInEmail(email: String, password: String, displayName: String? = nil) async {
+    func signInEmail(email: String, password: String, displayName: String? = nil, createsAccount: Bool = false) async {
         isWorking = true
         defer { isWorking = false }
         try? await Task.sleep(for: .milliseconds(350))
         let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !normalizedEmail.isEmpty, !password.isEmpty else {
-            errorMessage = String(localized: "auth_error_email_password")
+            errorMessage = "Введите почту и пароль."
             return
         }
         let account = "auth.email.\(normalizedEmail)"
         let hash = Self.hash("\(normalizedEmail):\(password)")
         if let storedHash = SecureStore.value(account: account) {
             guard storedHash == hash else {
-                errorMessage = String(localized: "auth_error_invalid_credentials")
+                errorMessage = "Неверная почта или пароль."
                 return
             }
             guard let storedUserID = SecureStore.value(account: "\(account).user").flatMap(UUID.init(uuidString:)), let user = database?.user(id: storedUserID) else {
-                errorMessage = String(localized: "auth_error_linked_profile")
+                errorMessage = "Этот аккаунт не привязан к локальному профилю."
                 return
             }
             currentUser = user
             defaults.set(user.id.uuidString, forKey: currentUserKey)
             errorMessage = nil
+            return
+        }
+        guard createsAccount else {
+            errorMessage = "Аккаунт с такой почтой не найден. Создайте новый аккаунт."
             return
         }
         let name = displayName?.trimmingCharacters(in: .whitespacesAndNewlines)

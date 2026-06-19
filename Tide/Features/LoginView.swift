@@ -48,35 +48,13 @@ struct LoginView: View {
 private struct HeaderSection: View {
     var body: some View {
         VStack(spacing: 24) {
-            // Металлический хромовый логотип
-            ZStack {
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(white: 0.4), Color(white: 0.1), Color(white: 0.3)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        Circle()
-                            .stroke(Color(white: 0.5).opacity(0.3), lineWidth: 0.5)
-                    )
-                
-                Image(systemName: "s.circle.fill")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 60, height: 60)
-                    .foregroundStyle(
-                        .linearGradient(
-                            colors: [.white, .gray],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
-            .frame(width: 120, height: 120)
-            .shadow(color: .white.opacity(0.05), radius: 20, x: 0, y: 10)
+            // Официальный логотип TideIcon
+            Image("TideIcon")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 120, height: 120)
+                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+                .shadow(color: .white.opacity(0.1), radius: 20, x: 0, y: 10)
             
             VStack(spacing: 8) {
                 Text("Welcome back")
@@ -122,15 +100,16 @@ private struct SocialButton: View {
     let namespace: Namespace.ID
     
     var iconURL: URL {
+        let bundle = Bundle.main
         switch icon {
         case "github":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+            return bundle.url(forResource: "github_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         case "google":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/google/default.svg")!
+            return bundle.url(forResource: "google_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         case "apple.logo":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/apple/light.svg")!
+            return bundle.url(forResource: "apple_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         default:
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+            return URL(string: "about:blank")!
         }
     }
     
@@ -151,15 +130,16 @@ private struct SocialButtonFallback: View {
     let icon: String
     
     var iconURL: URL {
+        let bundle = Bundle.main
         switch icon {
         case "github":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+            return bundle.url(forResource: "github_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         case "google":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/google/default.svg")!
+            return bundle.url(forResource: "google_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         case "apple.logo":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/apple/light.svg")!
+            return bundle.url(forResource: "apple_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         default:
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+            return URL(string: "about:blank")!
         }
     }
     

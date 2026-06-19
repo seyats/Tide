@@ -227,15 +227,16 @@ private struct SocialIcon: View {
     let namespace: Namespace.ID
     
     var iconURL: URL {
+        let bundle = Bundle.main
         switch icon {
         case "github":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+            return bundle.url(forResource: "github_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         case "google":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/google/default.svg")!
+            return bundle.url(forResource: "google_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         case "apple.logo":
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/apple/light.svg")!
+            return bundle.url(forResource: "apple_logo", withExtension: "svg") ?? URL(string: "about:blank")!
         default:
-            return URL(string: "https://cdn.jsdelivr.net/gh/glincker/thesvg@main/public/icons/github/light.svg")!
+            return URL(string: "about:blank")!
         }
     }
     

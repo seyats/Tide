@@ -5,6 +5,7 @@ import SwiftUI
 @available(iOS 17.0, *)
 struct EmailLoginView: View {
     // MARK: - Environment
+    @Environment(AppDependencies.self) private var dependencies
     @Environment(\.dismiss) private var dismiss
     
     // MARK: - State
@@ -18,28 +19,20 @@ struct EmailLoginView: View {
         ZStack {
             Color.black.ignoresSafeArea()
             
-            VStack(alignment: .leading, spacing: 0) {
-                BackButton(action: { dismiss() })
-                    .padding(.top, 16)
-                    .padding(.bottom, 32)
-                
-                HeaderSection()
+            VStack(spacing: 0) {
+                HeaderSection(dismiss: dismiss)
                     .padding(.bottom, 40)
                 
-                InputSection(
-                    email: $email,
-                    password: $password,
-                    isPasswordVisible: $isPasswordVisible
-                )
-                .padding(.bottom, 12)
+                InputSection(email: $email, password: $password, isPasswordVisible: $isPasswordVisible)
+                    .padding(.bottom, 24)
                 
-                ForgotPasswordButton()
+                ForgotPasswordSection()
                     .padding(.bottom, 40)
                 
-                SignInButton(action: handleSignIn)
-                    .padding(.bottom, 40)
+                SignInButtonSection(action: handleSignIn)
+                    .padding(.bottom, 48)
                 
-                SocialContinueSection(namespace: glassNamespace)
+                SocialSection(namespace: glassNamespace)
                 
                 Spacer()
                 
@@ -61,30 +54,29 @@ struct EmailLoginView: View {
 // MARK: - Subviews
 
 @available(iOS 17.0, *)
-private struct BackButton: View {
-    let action: () -> Void
+private struct HeaderSection: View {
+    let dismiss: DismissAction
     
     var body: some View {
-        Button(action: action) {
-            Image(systemName: "chevron.left")
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundColor(.white)
-        }
-    }
-}
-
-@available(iOS 17.0, *)
-private struct HeaderSection: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Welcome back")
-                .font(.system(size: 34, weight: .bold))
-                .foregroundColor(.white)
+        VStack(alignment: .leading, spacing: 24) {
+            Button(action: { dismiss() }) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
+            }
             
-            Text("Sign in to continue")
-                .font(.system(size: 16))
-                .foregroundColor(.gray)
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Welcome back")
+                    .font(.system(size: 34, weight: .bold))
+                    .foregroundColor(.white)
+                
+                Text("Sign in to continue")
+                    .font(.system(size: 16))
+                    .foregroundColor(.gray)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.top, 20)
     }
 }
 
@@ -96,79 +88,72 @@ private struct InputSection: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            // Email Field
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Email")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
-                
-                HStack {
-                    TextField("name@example.com", text: $email)
-                        .font(.system(size: 16))
-                        .foregroundColor(.white)
-                        .accentColor(.white)
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
-                    
-                    Image(systemName: "envelope")
-                        .foregroundColor(.gray)
-                }
-                .padding(.horizontal, 16)
-                .frame(height: 54)
-                .background(Color(white: 0.1).opacity(0.6))
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color(white: 0.2), lineWidth: 0.5)
-                )
-            }
-            
-            // Password Field
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Password")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.white)
-                
-                HStack {
-                    if isPasswordVisible {
-                        TextField("Password", text: $password)
-                    } else {
-                        SecureField("Password", text: $password)
-                    }
-                    
-                    Button(action: { isPasswordVisible.toggle() }) {
-                        Image(systemName: isPasswordVisible ? "eye" : "eye.slash")
-                            .foregroundColor(.gray)
-                    }
-                }
-                .font(.system(size: 16))
-                .padding(.horizontal, 16)
-                .frame(height: 54)
-                .background(Color(white: 0.1).opacity(0.6))
-                .clipShape(RoundedRectangle(cornerRadius: 14))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 14)
-                        .stroke(Color(white: 0.2), lineWidth: 0.5)
-                )
-            }
+            InputField(title: "Email", text: $email, icon: "envelope", isSecure: false, isVisible: .constant(true))
+            InputField(title: "Password", text: $password, icon: "lock", isSecure: true, isVisible: $isPasswordVisible)
         }
     }
 }
 
 @available(iOS 17.0, *)
-private struct ForgotPasswordButton: View {
+private struct InputField: View {
+    let title: String
+    @Binding var text: String
+    let icon: String
+    let isSecure: Bool
+    @Binding var isVisible: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.gray)
+            
+            HStack {
+                if isSecure && !isVisible {
+                    SecureField("name@example.com", text: $text)
+                } else {
+                    TextField("name@example.com", text: $text)
+                }
+                
+                Spacer()
+                
+                if isSecure {
+                    Button(action: { isVisible.toggle() }) {
+                        Image(systemName: isVisible ? "eye.slash" : "eye")
+                            .foregroundColor(.gray)
+                    }
+                } else {
+                    Image(systemName: "mail")
+                        .foregroundColor(.gray)
+                }
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 16)
+            .frame(height: 56)
+            .background(Color(white: 0.05))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(white: 0.15), lineWidth: 1)
+            )
+        }
+    }
+}
+
+@available(iOS 17.0, *)
+private struct ForgotPasswordSection: View {
     var body: some View {
         HStack {
             Spacer()
             Button("Forgot password?") { }
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 14))
                 .foregroundColor(.gray)
         }
     }
 }
 
 @available(iOS 17.0, *)
-private struct SignInButton: View {
+private struct SignInButtonSection: View {
     let action: () -> Void
     
     var body: some View {
@@ -176,113 +161,88 @@ private struct SignInButton: View {
             HStack {
                 Text("Sign in")
                     .font(.system(size: 16, weight: .semibold))
+                Spacer()
                 Image(systemName: "arrow.right")
-                    .font(.system(size: 14, weight: .bold))
             }
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(
-                Group {
-                    if #available(iOS 26.0, *) {
-                        EmptyView().glassEffect(.regular.interactive(), in: .rect(cornerRadius: 14))
-                    } else {
-                        Color(white: 0.15).opacity(0.9).clipShape(RoundedRectangle(cornerRadius: 14))
-                    }
-                }
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(Color(white: 0.3).opacity(0.5), lineWidth: 0.5)
-            )
+            .foregroundColor(.black)
+            .padding(.horizontal, 24)
+            .frame(height: 52)
+            .background(Color.white)
+            .cornerRadius(12)
         }
     }
 }
 
 @available(iOS 17.0, *)
-private struct SocialContinueSection: View {
+private struct SocialSection: View {
     let namespace: Namespace.ID
     
     var body: some View {
         VStack(spacing: 24) {
             HStack {
-                Rectangle().fill(Color.gray.opacity(0.2)).frame(height: 0.5)
-                Text("or continue with")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                    .padding(.horizontal, 12)
-                Rectangle().fill(Color.gray.opacity(0.2)).frame(height: 0.5)
+                Rectangle().fill(Color(white: 0.15)).frame(height: 0.5)
+                Text("or continue with").font(.system(size: 14)).foregroundColor(.gray).padding(.horizontal, 8)
+                Rectangle().fill(Color(white: 0.15)).frame(height: 0.5)
             }
             
             HStack(spacing: 20) {
-                SocialIcon(icon: "github", namespace: namespace)
-                SocialIcon(icon: "google", namespace: namespace)
-                SocialIcon(icon: "apple.logo", namespace: namespace)
+                SocialCircleButton(icon: .github)
+                SocialCircleButton(icon: .google)
+                SocialCircleButton(icon: .apple)
             }
         }
     }
 }
 
+enum SocialBrand {
+    case google, github, apple
+}
+
 @available(iOS 17.0, *)
-private struct SocialIcon: View {
-    let icon: String
-    let namespace: Namespace.ID
-    
-    var iconURL: URL {
-        let bundle = Bundle.main
-        switch icon {
-        case "github":
-            return bundle.url(forResource: "github_logo", withExtension: "svg") ?? URL(string: "about:blank")!
-        case "google":
-            return bundle.url(forResource: "google_logo", withExtension: "svg") ?? URL(string: "about:blank")!
-        case "apple.logo":
-            return bundle.url(forResource: "apple_logo", withExtension: "svg") ?? URL(string: "about:blank")!
-        default:
-            return URL(string: "about:blank")!
-        }
-    }
+private struct SocialCircleButton: View {
+    let icon: SocialBrand
     
     var body: some View {
         Button(action: {}) {
-            SVGRemoteView(url: iconURL)
-                .frame(width: 20, height: 20)
-                .frame(width: 48, height: 48)
-                .background(
-                    Group {
-                        if #available(iOS 26.0, *) {
-                            EmptyView().glassEffect(.regular.interactive(), in: .circle)
-                        } else {
-                            Circle().fill(Color(white: 0.1))
-                        }
-                    }
-                )
+            BrandIcon(brand: icon)
+                .frame(width: 24, height: 24)
+                .frame(width: 54, height: 54)
+                .background(Color(white: 0.1))
+                .clipShape(Circle())
                 .overlay(Circle().stroke(Color(white: 0.2), lineWidth: 0.5))
         }
-        .buttonStyle(.plain)
+    }
+}
+
+@available(iOS 17.0, *)
+private struct BrandIcon: View {
+    let brand: SocialBrand
+    
+    var body: some View {
+        Group {
+            switch brand {
+            case .google:
+                SVGRemoteView(url: Bundle.main.url(forResource: "google_logo", withExtension: "svg")!)
+            case .github:
+                SVGRemoteView(url: Bundle.main.url(forResource: "github_logo", withExtension: "svg")!)
+            case .apple:
+                SVGRemoteView(url: Bundle.main.url(forResource: "apple_logo", withExtension: "svg")!)
+            }
+        }
     }
 }
 
 @available(iOS 17.0, *)
 private struct FooterSection: View {
     var body: some View {
-        HStack {
-            Spacer()
-            HStack(spacing: 4) {
-                Text("No account?")
-                    .foregroundColor(.gray)
-                Button("Sign up") { }
-                    .foregroundColor(.white)
-                    .fontWeight(.semibold)
-            }
-            .font(.system(size: 14))
-            Spacer()
+        HStack(spacing: 4) {
+            Text("No account?")
+                .foregroundColor(.gray)
+            Button("Sign up") { }
+                .foregroundColor(.white)
+                .fontWeight(.semibold)
         }
+        .font(.system(size: 14))
         .padding(.bottom, 32)
-    }
-}
-
-#Preview {
-    if #available(iOS 17.0, *) {
-        EmailLoginView()
     }
 }

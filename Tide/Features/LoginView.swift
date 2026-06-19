@@ -106,7 +106,7 @@ private struct SocialButton: View {
     var body: some View {
         Button(action: {}) {
             BrandIcon(brand: icon)
-                .frame(width: 24, height: 24)
+                .frame(width: 28, height: 28)
                 .frame(width: 54, height: 54)
         }
         .buttonStyle(.plain)
@@ -122,7 +122,7 @@ private struct SocialButtonFallback: View {
     var body: some View {
         Button(action: {}) {
             BrandIcon(brand: icon)
-                .frame(width: 24, height: 24)
+                .frame(width: 28, height: 28)
                 .frame(width: 54, height: 54)
                 .background(Color(white: 0.1).opacity(0.8))
                 .clipShape(RoundedRectangle(cornerRadius: 14))
@@ -139,23 +139,15 @@ private struct BrandIcon: View {
     let brand: SocialBrand
     
     var body: some View {
-        switch brand {
-        case .google:
-            // Google Logo (G)
-            ZStack {
-                Circle().fill(.white).frame(width: 24, height: 24)
-                Image(systemName: "g.circle.fill")
-                    .resizable()
-                    .foregroundColor(.blue)
+        Group {
+            switch brand {
+            case .google:
+                SVGRemoteView(url: Bundle.main.url(forResource: "google_logo", withExtension: "svg")!)
+            case .github:
+                SVGRemoteView(url: Bundle.main.url(forResource: "github_logo", withExtension: "svg")!)
+            case .apple:
+                SVGRemoteView(url: Bundle.main.url(forResource: "apple_logo", withExtension: "svg")!)
             }
-        case .github:
-            Image(systemName: "github.logo") // Fallback to SF Symbols if SVG fails, but let's use a custom shape
-                .resizable()
-                .foregroundColor(.white)
-        case .apple:
-            Image(systemName: "apple.logo")
-                .resizable()
-                .foregroundColor(.white)
         }
     }
 }

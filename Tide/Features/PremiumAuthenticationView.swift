@@ -535,7 +535,7 @@ struct AppleAuthGlassButton: View {
                 completion(result)
             }
             .signInWithAppleButtonStyle(.black)
-            .clipShape(shape == .circle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)))
+            .clipShape(shape == .circle ? AnyShapeCircle() : AnyShapeRoundedRectangle(cornerRadius: cornerRadius))
             .opacity(0.02)
         }
     }
@@ -594,15 +594,15 @@ struct AuthGlassBackground: View {
     }
 }
 
-struct AnyShape: Shape {
-    private let pathBuilder: (CGRect) -> Path
+struct AnyShapeCircle: Shape {
+    func path(in rect: CGRect) -> Path { Circle().path(in: rect) }
+}
 
-    init<S: Shape>(_ shape: S) {
-        pathBuilder = { rect in shape.path(in: rect) }
-    }
+struct AnyShapeRoundedRectangle: Shape {
+    let cornerRadius: CGFloat
 
     func path(in rect: CGRect) -> Path {
-        pathBuilder(rect)
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).path(in: rect)
     }
 }
 

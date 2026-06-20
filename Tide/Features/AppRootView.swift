@@ -6,7 +6,9 @@ struct AppRootView: View {
     @Environment(AppDependencies.self) private var dependencies
 
     var body: some View {
-        if dependencies.session.isAuthenticated {
+        if dependencies.session.isAuthenticated, dependencies.session.needsProfileSetup {
+            AuthProfileSetupView()
+        } else if dependencies.session.isAuthenticated {
             MainTabView()
         } else {
             PremiumAuthenticationView()

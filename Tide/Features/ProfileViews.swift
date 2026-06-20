@@ -7,8 +7,8 @@ struct ProfileView: View {
     @Environment(AppDependencies.self) private var dependencies
     let user: User
     @State private var profile: User
-    @State private var section = "profile_tab_posts"
-    private let sections = ["profile_tab_posts", "profile_tab_media", "profile_tab_saved", "profile_tab_likes"]
+    @State private var section: ProfileSection = .posts
+    private let sections: [ProfileSection] = ProfileSection.allCases
 
     init(user: User) {
         self.user = user
@@ -32,7 +32,7 @@ struct ProfileView: View {
                     }
                 } header: {
                     Picker("Раздел профиля", selection: $section) {
-                        ForEach(sections, id: \.self) { Text(LocalizedStringKey($0)).tag($0) }
+                        ForEach(sections, id: \.self) { Text($0.title).tag($0) }
                     }
                     .pickerStyle(.segmented)
                     .padding(.horizontal)
@@ -146,9 +146,9 @@ struct ProfileView: View {
 
     private var visiblePosts: [Post] {
         switch section {
-        case "profile_tab_media": authoredPosts.filter { !$0.media.isEmpty }
-        case "profile_tab_saved": isCurrentUser ? dependencies.social.posts.filter(\.isSaved) : []
-        case "profile_tab_likes": isCurrentUser ? dependencies.social.posts.filter(\.isLiked) : []
+        case .media: authoredPosts.filter { !$0.media.isEmpty }
+        case .saved: isCurrentUser ? dependencies.social.posts.filter(\.isSaved) : []
+        case .likes: isCurrentUser ? dependencies.social.posts.filter(\.isLiked) : []
         default: authoredPosts
         }
     }
@@ -177,6 +177,22 @@ struct ProfileView: View {
         profile.isBlocked.toggle()
         dependencies.database.updateUser(profile)
         dependencies.social.reload()
+    }
+}
+
+private enum ProfileSection: String, CaseIterable, Hashable {
+    case posts
+    case media
+    case saved
+    case likes
+
+    var title: String {
+        switch self {
+        case .posts: "Посты"
+        case .media: "Медиа"
+        case .saved: "Сохранённое"
+        case .likes: "Лайки"
+        }
     }
 }
 

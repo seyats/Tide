@@ -3,8 +3,8 @@ import SwiftUI
 
 struct FeedView: View {
     @Environment(AppDependencies.self) private var dependencies
-    @State private var selection = "feed_for_you"
-    private let sections = ["feed_for_you", "feed_following", "feed_trends", "feed_search"]
+    @State private var selection: FeedSection = .forYou
+    private let sections: [FeedSection] = FeedSection.allCases
 
     var body: some View {
         @Bindable var social = dependencies.social
@@ -12,7 +12,7 @@ struct FeedView: View {
             LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
                 StoryRail(stories: social.stories)
                 Section {
-                    if selection == "feed_trends" {
+                    if selection == .trends {
                         TrendsView()
                     } else if social.filteredPosts.isEmpty {
                         EmptyStateView(symbol: "text.page", title: "Постов нет", message: "Подпишитесь на людей или создайте первый пост.")
@@ -29,7 +29,7 @@ struct FeedView: View {
                                 Button {
                                     selection = item
                                 } label: {
-                                    Text(LocalizedStringKey(item))
+                                    Text(item.title)
                                         .font(.caption.weight(.semibold))
                                         .padding(.horizontal, 14)
                                         .padding(.vertical, 9)
@@ -61,8 +61,24 @@ struct FeedView: View {
 
     private var filteredPosts: [Post] {
         switch selection {
-        case "feed_following": dependencies.social.filteredPosts.filter { $0.author.isFollowing || $0.author.id == dependencies.session.currentUser?.id }
+        case .following: dependencies.social.filteredPosts.filter { $0.author.isFollowing || $0.author.id == dependencies.session.currentUser?.id }
         default: dependencies.social.filteredPosts
+        }
+    }
+}
+
+private enum FeedSection: String, CaseIterable, Hashable {
+    case forYou
+    case following
+    case trends
+    case search
+
+    var title: String {
+        switch self {
+        case .forYou: "Для вас"
+        case .following: "Подписки"
+        case .trends: "Тренды"
+        case .search: "Поиск"
         }
     }
 }
@@ -266,7 +282,7 @@ struct ComposerView: View {
         VStack(spacing: 8) {
             Image(systemName: symbol)
                 .font(.title3)
-            Text(LocalizedStringKey(title))
+            Text(title)
                 .font(.caption2.weight(.semibold))
         }
         .frame(maxWidth: .infinity)

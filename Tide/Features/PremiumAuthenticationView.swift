@@ -46,6 +46,7 @@ struct PremiumAuthenticationView: View {
 
             AuthChromeLogo(size: 142)
                 .matchedGeometryEffect(id: "logo", in: logoNamespace)
+                .padding(.bottom, 8)
 
             VStack(spacing: 8) {
                 Text("Welcome back")
@@ -59,10 +60,10 @@ struct PremiumAuthenticationView: View {
 
             HStack(spacing: 12) {
                 AuthSocialGlassButton(kind: .github, svgName: "github") {
-                    setPlaceholder("GitHub sign in is a placeholder for now.")
+                    setPlaceholder("Вход через GitHub пока работает как заглушка.")
                 }
                 AuthSocialGlassButton(kind: .google, svgName: "google") {
-                    setPlaceholder("Google sign in is a placeholder for now.")
+                    setPlaceholder("Вход через Google пока работает как заглушка.")
                 }
                 AppleAuthGlassButton(svgName: "apple", completion: handleAppleSignIn)
             }
@@ -84,8 +85,8 @@ struct PremiumAuthenticationView: View {
 
             Spacer()
 
-            AuthFooter(prefix: "Don't have an account?", action: "Sign up") {
-                setPlaceholder("Sign up will be added after the private preview.")
+            AuthFooter(prefix: "Don’t have an account?", action: "Sign up") {
+                setPlaceholder("Регистрация появится после приватного preview.")
             }
             .padding(.bottom, 34)
         }
@@ -97,14 +98,11 @@ struct PremiumAuthenticationView: View {
                 Button {
                     withAnimation(.smooth(duration: 0.38)) { stage = .landing }
                 } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 13, weight: .semibold))
-                        Text("Back")
-                            .font(.system(size: 14, weight: .medium))
-                    }
-                    .foregroundStyle(.white.opacity(0.78))
-                    .frame(height: 36)
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.82))
+                        .frame(width: 38, height: 38)
+                        .background(AuthGlassBackground(cornerRadius: 13, interactive: true))
                 }
                 Spacer()
             }
@@ -151,7 +149,7 @@ struct PremiumAuthenticationView: View {
             HStack {
                 Spacer()
                 Button("Forgot password?") {
-                    setPlaceholder("Password reset is a placeholder for now.")
+                    setPlaceholder("Сброс пароля пока работает как заглушка.")
                 }
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.white.opacity(0.55))
@@ -181,10 +179,10 @@ struct PremiumAuthenticationView: View {
 
             HStack(spacing: 13) {
                 AuthSocialGlassButton(kind: .github, svgName: "github", shape: .circle) {
-                    setPlaceholder("GitHub sign in is a placeholder for now.")
+                    setPlaceholder("Вход через GitHub пока работает как заглушка.")
                 }
                 AuthSocialGlassButton(kind: .google, svgName: "google", shape: .circle) {
-                    setPlaceholder("Google sign in is a placeholder for now.")
+                    setPlaceholder("Вход через Google пока работает как заглушка.")
                 }
                 AppleAuthGlassButton(svgName: "apple", shape: .circle, completion: handleAppleSignIn)
             }

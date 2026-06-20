@@ -36,15 +36,15 @@ final class SessionStore {
         try? await Task.sleep(for: .milliseconds(320))
         let normalizedIdentifier = identifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !normalizedIdentifier.isEmpty, !password.isEmpty else {
-            errorMessage = "Enter your email or username and password."
+            errorMessage = "Введите username или почту и пароль."
             return
         }
         guard normalizedIdentifier == demoIdentifier || normalizedIdentifier == "\(demoIdentifier)@tide.app" else {
-            errorMessage = "This account is not available yet. Use durov for the private preview."
+            errorMessage = "Этот аккаунт пока доступен только для приватного preview. Используйте durov."
             return
         }
         guard password == demoPassword else {
-            errorMessage = "Incorrect password."
+            errorMessage = "Неверный пароль."
             return
         }
         let user = ensureDemoUser()
@@ -189,7 +189,7 @@ final class SessionStore {
         let cleanUsername = username.trimmingCharacters(in: .whitespacesAndNewlines)
         user.name = cleanName.isEmpty ? user.name : cleanName
         user.username = cleanUsername.isEmpty ? user.username : Self.fallbackUsername(from: cleanUsername)
-        user.biography = user.isVerified ? "Account verified" : "Joined Tide"
+        user.biography = user.isVerified ? "Аккаунт верифицирован" : "Зарегистрирован в Tide"
         user.avatarSymbol = "person.crop.circle.fill"
         user.lastSeenAt = .now
         currentUser = user
@@ -295,7 +295,7 @@ final class SessionStore {
         if var existing = database?.user(username: demoIdentifier) {
             existing.isVerified = true
             existing.name = existing.name.isEmpty ? "Pavel Durov" : existing.name
-            existing.biography = "Account verified"
+            existing.biography = "Аккаунт верифицирован"
             existing.avatarSymbol = "person.crop.circle.fill"
             existing.followers = max(existing.followers, 12_800_000)
             existing.following = max(existing.following, 1)
@@ -306,7 +306,7 @@ final class SessionStore {
             id: UUID(),
             name: "Pavel Durov",
             username: demoIdentifier,
-            biography: "Account verified",
+            biography: "Аккаунт верифицирован",
             avatarSymbol: "person.crop.circle.fill",
             avatarImageURL: nil,
             isVerified: true,

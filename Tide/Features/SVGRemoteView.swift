@@ -30,7 +30,16 @@ struct SVGRemoteView: UIViewRepresentable {
 
     private func load(_ url: URL, in webView: WKWebView) {
         if url.isFileURL {
-            webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+            if let data = try? Data(contentsOf: url) {
+                webView.load(
+                    data,
+                    mimeType: "image/svg+xml",
+                    characterEncodingName: "UTF-8",
+                    baseURL: url.deletingLastPathComponent()
+                )
+            } else {
+                webView.loadFileURL(url, allowingReadAccessTo: url.deletingLastPathComponent())
+            }
         } else {
             webView.load(URLRequest(url: url))
         }

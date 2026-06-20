@@ -529,14 +529,25 @@ struct AppleAuthGlassButton: View {
         }
         .frame(width: size, height: size)
         .overlay {
-            SignInWithAppleButton(.signIn) { request in
-                request.requestedScopes = [.fullName, .email]
-            } onCompletion: { result in
-                completion(result)
+            if shape == .circle {
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    completion(result)
+                }
+                .signInWithAppleButtonStyle(.black)
+                .clipShape(Circle())
+                .opacity(0.02)
+            } else {
+                SignInWithAppleButton(.signIn) { request in
+                    request.requestedScopes = [.fullName, .email]
+                } onCompletion: { result in
+                    completion(result)
+                }
+                .signInWithAppleButtonStyle(.black)
+                .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                .opacity(0.02)
             }
-            .signInWithAppleButtonStyle(.black)
-            .clipShape(shape == .circle ? AnyShapeCircle() : AnyShapeRoundedRectangle(cornerRadius: cornerRadius))
-            .opacity(0.02)
         }
     }
 }
@@ -591,18 +602,6 @@ struct AuthGlassBackground: View {
             }
             .shadow(color: .black.opacity(0.35), radius: 18, y: 10)
             .authGlass(cornerRadius: cornerRadius, interactive: interactive)
-    }
-}
-
-struct AnyShapeCircle: Shape {
-    func path(in rect: CGRect) -> Path { Circle().path(in: rect) }
-}
-
-struct AnyShapeRoundedRectangle: Shape {
-    let cornerRadius: CGFloat
-
-    func path(in rect: CGRect) -> Path {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous).path(in: rect)
     }
 }
 

@@ -15,7 +15,7 @@ struct FeedView: View {
                     if selection == .trends {
                         TrendsView()
                     } else if social.filteredPosts.isEmpty {
-                        EmptyStateView(symbol: "text.page", title: "РџРѕСЃС‚РѕРІ РЅРµС‚", message: "РџРѕРґРїРёС€РёС‚РµСЃСЊ РЅР° Р»СЋРґРµР№ РёР»Рё СЃРѕР·РґР°Р№С‚Рµ РїРµСЂРІС‹Р№ РїРѕСЃС‚.")
+                        EmptyStateView(symbol: "text.page", title: "Постов нет", message: "Подпишитесь на людей или создайте первый пост.")
                     } else {
                         ForEach(filteredPosts) { post in
                             PostCard(post: post)
@@ -75,10 +75,10 @@ private enum FeedSection: String, CaseIterable, Hashable {
 
     var title: String {
         switch self {
-        case .forYou: "Р”Р»СЏ РІР°СЃ"
-        case .following: "РџРѕРґРїРёСЃРєРё"
-        case .trends: "РўСЂРµРЅРґС‹"
-        case .search: "РџРѕРёСЃРє"
+        case .forYou: "Для вас"
+        case .following: "Подписки"
+        case .trends: "Тренды"
+        case .search: "Поиск"
         }
     }
 }
@@ -134,13 +134,13 @@ struct PostCard: View {
                 HStack(spacing: 6) {
                     VerifiedName(user: post.author)
                     Text(post.author.handle).foregroundStyle(.secondary).lineLimit(1)
-                    Text("В· \(post.createdAt.formatted(.relative(presentation: .named)))")
+                    Text("· \(post.createdAt.formatted(.relative(presentation: .named)))")
                         .foregroundStyle(.secondary).lineLimit(1)
                     Spacer()
                     Menu {
-                        Button("РџРѕР¶Р°Р»РѕРІР°С‚СЊСЃСЏ", role: .destructive) { dependencies.router.sheet = .report(post.id, "post") }
+                        Button("Пожаловаться", role: .destructive) { dependencies.router.sheet = .report(post.id, "post") }
                         if post.author.id == dependencies.session.currentUser?.id {
-                            Button("РЈРґР°Р»РёС‚СЊ", role: .destructive) {
+                            Button("Удалить", role: .destructive) {
                                 if let actorID = dependencies.session.currentUser?.id { dependencies.social.deletePost(post.id, actorID: actorID) }
                             }
                         }
@@ -215,19 +215,19 @@ struct ComposerView: View {
                         HStack {
                             AvatarView(user: dependencies.session.currentUser ?? User(id: UUID(), name: "Tide", username: "tide", biography: "", avatarSymbol: "person.crop.circle.fill", isVerified: false, isAdministrator: false, followers: 0, following: 0, joinedAt: .now, coverSymbol: "water"), size: 38)
                             VStack(alignment: .leading, spacing: 2) {
-                        Text("РџСѓР±Р»РёРєСѓРµС‚")
+                        Text("Публикует")
                             .font(.caption).foregroundStyle(.secondary)
                                 Text(dependencies.session.currentUser?.handle ?? "@tide")
                                     .font(.subheadline.weight(.semibold))
                             }
                             Spacer()
-                            TextField("Р›РѕРєР°С†РёСЏ", text: $location)
+                            TextField("Локация", text: $location)
                                 .frame(width: 120)
                                 .textInputAutocapitalization(.never)
                         }
                         ZStack(alignment: .topLeading) {
                             if bodyText.isEmpty {
-                                Text("Р§С‚Рѕ Сѓ РІР°СЃ РЅРѕРІРѕРіРѕ?")
+                                Text("Что у вас нового?")
                                     .foregroundStyle(.secondary)
                                     .padding(.top, 8)
                                     .padding(.leading, 5)
@@ -238,9 +238,9 @@ struct ComposerView: View {
                         }
                         if !selectedMedia.isEmpty { ComposerMediaStrip(media: selectedMedia, remove: removeMedia) }
                         HStack(spacing: 10) {
-                            actionTile(symbol: "photo.on.rectangle", title: "РњРµРґРёР°")
-                            actionTile(symbol: "location.fill", title: "Р›РѕРєР°С†РёСЏ")
-                            actionTile(symbol: "clock.badge.checkmark", title: "Р—Р°РїР»Р°РЅРёСЂРѕРІР°С‚СЊ")
+                            actionTile(symbol: "photo.on.rectangle", title: "Медиа")
+                            actionTile(symbol: "location.fill", title: "Локация")
+                            actionTile(symbol: "clock.badge.checkmark", title: "Запланировать")
                         }
                     }
                 } header: {
@@ -248,21 +248,21 @@ struct ComposerView: View {
                 }
                 Section {
                     PhotosPicker(selection: $selectedItems, maxSelectionCount: 10, matching: .any(of: [.images, .videos])) {
-                        Label("Р”РѕР±Р°РІРёС‚СЊ РјРµРґРёР°", systemImage: "photo.on.rectangle")
+                        Label("Добавить медиа", systemImage: "photo.on.rectangle")
                     }
-                    if isImporting { ProgressView("РРјРїРѕСЂС‚ РјРµРґРёР°") }
+                    if isImporting { ProgressView("Импорт медиа") }
                 }
-                Picker("Р’РёРґРёРјРѕСЃС‚СЊ", selection: $visibility) {
+                Picker("Видимость", selection: $visibility) {
                     ForEach(PostVisibility.allCases) { Text($0.title).tag($0) }
                 }
             }
-            .navigationTitle("РќРѕРІС‹Р№ РїРѕСЃС‚")
+            .navigationTitle("Новый пост")
             .navigationBarTitleDisplayMode(.inline)
             .scrollContentBackground(.hidden)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("РћС‚РјРµРЅР°") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Отмена") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("РћРїСѓР±Р»РёРєРѕРІР°С‚СЊ", action: publish)
+                    Button("Опубликовать", action: publish)
                         .disabled(bodyText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && selectedMedia.isEmpty)
                 }
             }

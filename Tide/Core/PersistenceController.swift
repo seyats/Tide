@@ -251,10 +251,15 @@ final class LocalDatabase {
         trySave()
     }
 
-    func chats() -> [Chat] {
+    func chats(participantID: UUID? = nil) -> [Chat] {
         let userIndex = Dictionary(uniqueKeysWithValues: users().map { ($0.id, $0) })
         let messagesIndex = Dictionary(grouping: fetch(MessageRecord.self), by: \.chatID)
-        return fetch(ChatRecord.self, sortedBy: [SortDescriptor(\.lastActivityAt, order: .reverse)]).map { record in
+        return fetch(ChatRecord.self, sortedBy: [SortDescriptor(\.lastActivityAt, order: .reverse)])
+            .filter { record in
+                guard let participantID else { return true }
+                return record.participantIDs.contains(participantID)
+            }
+            .map { record in
             let participants = record.participantIDs.compactMap { userIndex[$0] }
             let messages = (messagesIndex[record.id] ?? []).sorted { $0.sentAt < $1.sentAt }.map(\.domain)
             return Chat(
@@ -359,8 +364,13 @@ final class LocalDatabase {
         trySave()
     }
 
-    func notifications() -> [AppNotification] {
-        fetch(NotificationRecord.self, sortedBy: [SortDescriptor(\.createdAt, order: .reverse)]).map(\.domain)
+    func notifications(recipientID: UUID? = nil) -> [AppNotification] {
+        fetch(NotificationRecord.self, sortedBy: [SortDescriptor(\.createdAt, order: .reverse)])
+            .filter { record in
+                guard let recipientID else { return true }
+                return record.recipientID == recipientID
+            }
+            .map(\.domain)
     }
 
     func insertNotification(_ notification: AppNotification) {
@@ -374,8 +384,13 @@ final class LocalDatabase {
         trySave()
     }
 
-    func markAllNotificationsRead() {
-        fetch(NotificationRecord.self).forEach { $0.isRead = true }
+    func markAllNotificationsRead(recipientID: UUID? = nil) {
+        fetch(NotificationRecord.self)
+            .filter { record in
+                guard let recipientID else { return true }
+                return record.recipientID == recipientID
+            }
+            .forEach { $0.isRead = true }
         trySave()
     }
 

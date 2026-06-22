@@ -232,6 +232,7 @@ struct ModerationReport: Identifiable, Hashable, Codable, Sendable {
 
 struct AppNotification: Identifiable, Hashable, Codable, Sendable {
     let id: UUID
+    var recipientID: UUID?
     var kind: NotificationKind
     var title: String
     var body: String
@@ -307,6 +308,8 @@ enum AppTab: String, CaseIterable, Identifiable {
 enum AppRoute: Hashable {
     case post(UUID)
     case profile(User)
+    case sharedMedia(User)
+    case nickname(User)
     case chat(UUID)
     case settings
     case stories(UUID)

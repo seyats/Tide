@@ -5,6 +5,7 @@ import UIKit
 
 struct ProfileView: View {
     @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.dismiss) private var dismiss
     let user: User
     @State private var profile: User
     @State private var section: ProfileSection = .posts
@@ -18,131 +19,228 @@ struct ProfileView: View {
     private var isCurrentUser: Bool { profile.id == dependencies.session.currentUser?.id }
 
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 0, pinnedViews: .sectionHeaders) {
-                profileHeader
-                Section {
-                    if visiblePosts.isEmpty {
-                        ContentUnavailableView("Постов нет", systemImage: "rectangle.stack", description: Text("Опубликованные посты будут отображаться здесь."))
-                            .padding(.top, 38)
+        ZStack {
+            Color.black.ignoresSafeArea()
+            LinearGradient(colors: [.white.opacity(0.06), .clear, .white.opacity(0.03)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 28) {
+                    profileTopBar
+                    profileHero
+                    quickActions
+                    profileSettingsCard
+                    if isCurrentUser || !visiblePosts.isEmpty {
+                        profilePostsSection
                     }
-                    ForEach(visiblePosts) { post in
-                        PostCard(post: post)
-                        Divider().padding(.leading, 68)
-                    }
-                } header: {
-                    Picker("Раздел профиля", selection: $section) {
-                        ForEach(sections, id: \.self) { Text($0.title).tag($0) }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
                 }
+                .padding(.horizontal, 16)
+                .padding(.top, 18)
+                .padding(.bottom, 40)
             }
         }
-        .navigationTitle(profile.handle)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if isCurrentUser {
-                Button { dependencies.router.push(.settings) } label: { Image(systemName: "gearshape") }
-            } else {
-                Menu {
-                    Button(profile.isBlocked ? "Разблокировать" : "Заблокировать", role: .destructive, action: toggleBlock)
-                    Button("Пожаловаться", role: .destructive) { dependencies.router.sheet = .report(profile.id, "user") }
-                } label: { Image(systemName: "ellipsis.circle") }
-            }
-        }
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+        .preferredColorScheme(.dark)
         .onAppear { profile = dependencies.database.user(id: user.id) ?? user }
     }
 
-    private var profileHeader: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            ZStack(alignment: .bottomLeading) {
-                coverView
-                    .frame(height: 150)
-                avatarButton
-                    .offset(x: 18, y: 42)
+    private var profileTopBar: some View {
+        HStack {
+            TideGlassIconButton(symbol: "chevron.left", tint: .white, size: 62) {
+                dismiss()
             }
-            HStack {
-                Spacer()
-                if isCurrentUser {
-                    Button("Редактировать") { dependencies.router.sheet = .editProfile }
-                        .buttonStyle(TideSecondaryButtonStyle())
-                } else {
-                    Button("Сообщение", action: startMessage)
-                        .buttonStyle(TideSecondaryButtonStyle())
-                    Button(profile.isFollowing ? "Вы подписаны" : "Подписаться", action: toggleFollow)
-                        .buttonStyle(TidePrimaryButtonStyle())
-                }
-            }
-            .padding(.horizontal)
-            VStack(alignment: .leading, spacing: 7) {
-                VerifiedName(user: profile).font(.title2)
-                Text(profile.handle).foregroundStyle(.secondary)
-                if profile.isVerified {
-                    HStack(spacing: 6) {
-                        Image("TideAuthLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 14, height: 14)
-                            .clipShape(Circle())
-                        Text("аккаунт верифицирован")
-                    }
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                }
-                Text(profile.biography)
-                Text("В сети с \(profile.joinedAt.formatted(.dateTime.month(.wide).year()))")
-                    .font(.subheadline).foregroundStyle(.secondary)
-                HStack(spacing: 20) {
-                    counter(profile.following, "Подписки")
-                    counter(profile.followers, "Подписчики")
-                    counter(authoredPosts.count, "Посты")
-                }
-                .padding(.top, 4)
-            }
-            .padding(.horizontal)
-            .padding(.bottom, 8)
-        }
-    }
-
-    private var coverView: some View {
-        Group {
-            if let coverURL = profile.coverImageURL,
-               let image = UIImage(contentsOfFile: coverURL.path) {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .clipped()
-            } else {
-                LinearGradient(colors: [TidePalette.ink.opacity(0.28), TidePalette.subtle], startPoint: .topLeading, endPoint: .bottomTrailing)
-            }
-        }
-        .overlay(alignment: .topTrailing) {
+            Spacer()
             if isCurrentUser {
-                Button {
-                    dependencies.router.sheet = .editProfile
-                } label: {
-                    Image(systemName: "camera.fill")
-                        .font(.footnote.weight(.semibold))
-                        .frame(width: 34, height: 34)
-                        .background(.black.opacity(0.35), in: Circle())
+                TideGlassIconButton(symbol: "gearshape", tint: .white, size: 62) {
+                    dependencies.router.push(.settings)
                 }
-                .padding(12)
+            } else {
+                TideGlassIconButton(symbol: "pencil", tint: .white, size: 62) {
+                    startMessage()
+                }
             }
         }
     }
 
-    private var avatarButton: some View {
-        Button {
-            if isCurrentUser { dependencies.router.sheet = .editProfile }
-        } label: {
-            AvatarView(user: profile, size: 92)
+    private var profileHero: some View {
+        VStack(spacing: 16) {
+            AvatarView(user: profile, size: 132)
                 .padding(4)
-                .background(TidePalette.paper, in: Circle())
+                .background(.ultraThinMaterial, in: Circle())
+                .shadow(color: .black.opacity(0.34), radius: 22, y: 12)
+
+            VStack(spacing: 6) {
+                HStack(spacing: 8) {
+                    Text(profile.name)
+                        .font(.system(size: 34, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.74)
+                    if profile.isVerified {
+                        TideBrandLogoView(size: 25, style: .circle)
+                            .overlay(Circle().stroke(.white.opacity(0.16), lineWidth: 0.6))
+                    }
+                }
+                Text(profile.handle)
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.42))
+                if !profile.biography.isEmpty {
+                    Text(profile.biography)
+                        .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.68))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(3)
+                        .padding(.top, 2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    private var quickActions: some View {
+        HStack(spacing: 36) {
+            if isCurrentUser {
+                profileAction(symbol: "pencil", title: "Редактировать") {
+                    dependencies.router.sheet = .editProfile
+                }
+                profileAction(symbol: "gearshape", title: "Настройки") {
+                    dependencies.router.push(.settings)
+                }
+            } else {
+                profileAction(symbol: "person", title: "Профиль") {
+                    withAnimation(.easeInOut(duration: 0.36)) { toggleFollow() }
+                }
+                Menu {
+                    Button(role: .destructive) {
+                        toggleBlock()
+                    } label: {
+                        Label(profile.isBlocked ? "Разблокировать сообщения" : "Заблокировать сообщения", systemImage: "bubble.left.and.exclamationmark.bubble.right")
+                    }
+                    Button(role: .destructive) {
+                        dependencies.router.sheet = .report(profile.id, "user")
+                    } label: {
+                        Label("Пожаловаться на пользователя", systemImage: "flag")
+                    }
+                    Button(role: .destructive) {
+                        if let chatID = dependencies.messenger.filteredChats.first(where: { chat in
+                            chat.kind == .direct && chat.participants.contains(where: { $0.id == profile.id })
+                        })?.id {
+                            dependencies.messenger.delete(chatID)
+                        }
+                    } label: {
+                        Label("Удалить переписку", systemImage: "trash")
+                    }
+                } label: {
+                    VStack(spacing: 12) {
+                        Image(systemName: "ellipsis")
+                            .font(.system(size: 30, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 92, height: 92)
+                            .background(.ultraThinMaterial, in: Circle())
+                        Text("Ещё")
+                            .font(.system(size: 22, weight: .black, design: .rounded))
+                            .foregroundStyle(.white)
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
+
+    private func profileAction(symbol: String, title: String, action: @escaping () -> Void) -> some View {
+        Button {
+            action()
+        } label: {
+            VStack(spacing: 12) {
+                Image(systemName: symbol)
+                    .font(.system(size: 30, weight: .bold))
+                    .foregroundStyle(.white)
+                    .frame(width: 92, height: 92)
+                    .background(.ultraThinMaterial, in: Circle())
+                Text(title)
+                    .font(.system(size: 22, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+            }
+        }
+        .buttonStyle(TideGlassIconButtonStyle())
+    }
+
+    private var profileSettingsCard: some View {
+        VStack(spacing: 0) {
+            profileSettingsRow(symbol: "photo.on.rectangle.angled", title: "Общие медиафайлы", value: nil, enabled: true) {
+                dependencies.router.push(.sharedMedia(profile))
+            }
+            profileDivider
+            profileSettingsRow(symbol: "timer", title: "Исчезающие сообщения", value: "Выкл.", enabled: false) {}
+            profileDivider
+            profileSettingsRow(symbol: "camera.viewfinder", title: "Блокировать снимки", value: "Выкл.", enabled: false) {}
+            profileDivider
+            profileSettingsRow(symbol: "tag", title: "Задать псевдоним", value: nil, enabled: true) {
+                dependencies.router.push(.nickname(profile))
+            }
+        }
+        .padding(.vertical, 10)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 32, style: .continuous))
+        .shadow(color: .black.opacity(0.28), radius: 24, y: 16)
+    }
+
+    private func profileSettingsRow(symbol: String, title: String, value: String?, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                Image(systemName: symbol)
+                    .font(.system(size: 25, weight: .semibold))
+                    .foregroundStyle(enabled ? .white.opacity(0.72) : .white.opacity(0.22))
+                    .frame(width: 34)
+                Text(title)
+                    .font(.system(size: 22, weight: .black, design: .rounded))
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+                Spacer()
+                if let value {
+                    Text(value)
+                        .font(.system(size: 19, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.34))
+                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 18, weight: .black))
+                    .foregroundStyle(.white.opacity(enabled ? 0.32 : 0.16))
+            }
+            .foregroundStyle(enabled ? .white : .white.opacity(0.28))
+            .padding(.horizontal, 20)
+            .frame(height: 68)
         }
         .buttonStyle(.plain)
-        .disabled(!isCurrentUser)
+        .disabled(!enabled)
+    }
+
+    private var profileDivider: some View {
+        Rectangle()
+            .fill(.white.opacity(0.1))
+            .frame(height: 1)
+            .padding(.leading, 70)
+            .padding(.trailing, 20)
+    }
+
+    private var profilePostsSection: some View {
+        VStack(spacing: 14) {
+            Picker("Раздел профиля", selection: $section) {
+                ForEach(sections, id: \.self) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.segmented)
+
+            if visiblePosts.isEmpty {
+                ContentUnavailableView("Постов нет", systemImage: "rectangle.stack", description: Text("Опубликованные посты будут отображаться здесь."))
+                    .foregroundStyle(.white)
+                    .padding(.top, 20)
+            } else {
+                ForEach(visiblePosts) { post in
+                    PostCard(post: post)
+                        .padding(.horizontal, -16)
+                    Divider().overlay(.white.opacity(0.12))
+                }
+            }
+        }
     }
 
     private var authoredPosts: [Post] { dependencies.social.posts.filter { $0.author.id == profile.id } }
@@ -195,6 +293,152 @@ private enum ProfileSection: String, CaseIterable, Hashable {
         case .media: "Медиа"
         case .saved: "Сохранённое"
         case .likes: "Лайки"
+        }
+    }
+}
+
+struct SharedMediaView: View {
+    @Environment(AppDependencies.self) private var dependencies
+    @Environment(\.dismiss) private var dismiss
+    let user: User
+    @State private var selectedMedia: ProfileSelectedMedia?
+
+    private var media: [MediaAttachment] {
+        dependencies.social.posts
+            .filter { $0.author.id == user.id }
+            .flatMap(\.media)
+            .filter { $0.kind == .photo || $0.kind == .video }
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            VStack(spacing: 0) {
+                HStack {
+                    TideGlassIconButton(symbol: "chevron.left", tint: .white, size: 58) { dismiss() }
+                    Spacer()
+                    Text("Общие медиафайлы")
+                        .font(.system(size: 24, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Color.clear.frame(width: 58, height: 58)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 18)
+
+                if media.isEmpty {
+                    Spacer()
+                    VStack(spacing: 18) {
+                        Image(systemName: "photo.on.rectangle.angled")
+                            .font(.system(size: 64, weight: .regular))
+                            .foregroundStyle(.white)
+                        Text("Общих медиафайлов нет")
+                            .font(.system(size: 25, weight: .black, design: .rounded))
+                            .foregroundStyle(.white)
+                        Text("Здесь будут появляться фото, видео и GIF, опубликованные в этой переписке.")
+                            .font(.system(size: 18, weight: .medium, design: .rounded))
+                            .foregroundStyle(.white.opacity(0.42))
+                            .multilineTextAlignment(.center)
+                            .lineSpacing(3)
+                            .padding(.horizontal, 28)
+                    }
+                    Spacer()
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 3), count: 3), spacing: 3) {
+                            ForEach(Array(media.enumerated()), id: \.element.id) { index, item in
+                                PostMediaCell(media: item) {
+                                    selectedMedia = ProfileSelectedMedia(index: index)
+                                }
+                                .aspectRatio(1, contentMode: .fill)
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            }
+                        }
+                        .padding(16)
+                    }
+                }
+            }
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+        .preferredColorScheme(.dark)
+        .fullScreenCover(item: $selectedMedia) { item in
+            MediaViewerView(media: media, index: item.index)
+        }
+    }
+}
+
+private struct ProfileSelectedMedia: Identifiable {
+    let id = UUID()
+    let index: Int
+}
+
+struct NicknameView: View {
+    @Environment(\.dismiss) private var dismiss
+    let user: User
+    @State private var nickname = ""
+
+    var body: some View {
+        ZStack {
+            Color.black.ignoresSafeArea()
+            LinearGradient(colors: [.white.opacity(0.06), .clear], startPoint: .topLeading, endPoint: .bottomTrailing)
+                .ignoresSafeArea()
+
+            VStack(alignment: .leading, spacing: 28) {
+                HStack {
+                    TideGlassIconButton(symbol: "chevron.left", tint: .white, size: 58) { dismiss() }
+                    Spacer()
+                    Text("Задать псевдоним")
+                        .font(.system(size: 25, weight: .black, design: .rounded))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Button("Готово") {
+                        saveNickname()
+                        dismiss()
+                    }
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .opacity(nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0 : 1)
+                }
+                .padding(.top, 18)
+
+                VStack(alignment: .leading, spacing: 16) {
+                    TextField("Псевдоним", text: $nickname)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .tint(.white)
+                        .padding(.horizontal, 20)
+                        .frame(height: 64)
+                        .background(.ultraThinMaterial, in: Capsule())
+                    Text("Псевдонимы защищены сквозным шифрованием и видны только вам.")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.42))
+                        .lineSpacing(3)
+                        .padding(.horizontal, 20)
+                }
+
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+        }
+        .toolbar(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden(true)
+        .preferredColorScheme(.dark)
+        .onAppear {
+            nickname = UserDefaults.standard.string(forKey: nicknameKey) ?? ""
+        }
+    }
+
+    private var nicknameKey: String {
+        "tide.nickname.\(user.id.uuidString)"
+    }
+
+    private func saveNickname() {
+        let value = nickname.trimmingCharacters(in: .whitespacesAndNewlines)
+        if value.isEmpty {
+            UserDefaults.standard.removeObject(forKey: nicknameKey)
+        } else {
+            UserDefaults.standard.set(value, forKey: nicknameKey)
         }
     }
 }

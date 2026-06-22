@@ -326,6 +326,7 @@ final class ModerationReportRecord {
 @Model
 final class NotificationRecord {
     @Attribute(.unique) var id: UUID
+    var recipientID: UUID?
     var kindRawValue: String
     var title: String
     var body: String
@@ -335,6 +336,7 @@ final class NotificationRecord {
 
     init(notification: AppNotification) {
         id = notification.id
+        recipientID = notification.recipientID
         kindRawValue = notification.kind.rawValue
         title = notification.title
         body = notification.body
@@ -346,6 +348,7 @@ final class NotificationRecord {
     var domain: AppNotification {
         AppNotification(
             id: id,
+            recipientID: recipientID,
             kind: NotificationKind(rawValue: kindRawValue) ?? .system,
             title: title,
             body: body,

@@ -536,13 +536,14 @@ final class MessengerStore {
     private let socket: ChatSocketClient?
     private(set) var chats: [Chat]
     private(set) var connectionState: SocketConnectionState = .disconnected
+    private var scopedUserID: UUID?
     var query = ""
     var errorMessage: String?
 
     init(database: LocalDatabase, socket: ChatSocketClient) {
         self.database = database
         self.socket = socket
-        chats = database.chats()
+        chats = []
         observeSocket()
     }
 
@@ -575,8 +576,18 @@ final class MessengerStore {
     }
 
     func reload() {
+        reload(for: scopedUserID)
+    }
+
+    func reload(for userID: UUID?) {
         guard let database else { return }
-        chats = database.chats()
+        scopedUserID = userID
+        query = ""
+        guard let userID else {
+            chats = []
+            return
+        }
+        chats = database.chats(participantID: userID)
     }
 
     func chat(id: UUID) -> Chat? {
@@ -584,7 +595,11 @@ final class MessengerStore {
     }
 
     func createDirectChat(currentUser: User, otherUser: User) -> UUID {
-        if let existing = chats.first(where: { $0.kind == .direct && $0.participants.contains(where: { $0.id == otherUser.id }) }) {
+        if let existing = chats.first(where: {
+            $0.kind == .direct
+                && $0.participants.contains(where: { $0.id == currentUser.id })
+                && $0.participants.contains(where: { $0.id == otherUser.id })
+        }) {
             return existing.id
         }
         let chat = Chat(
@@ -775,20 +790,30 @@ final class MessengerStore {
 final class NotificationStore {
     private let database: LocalDatabase
     private(set) var notifications: [AppNotification]
+    private var scopedUserID: UUID?
 
     init(database: LocalDatabase) {
         self.database = database
-        notifications = database.notifications()
+        notifications = []
     }
 
     var unreadCount: Int { notifications.lazy.filter { !$0.isRead }.count }
 
     func reload() {
-        notifications = database.notifications()
+        reload(for: scopedUserID)
+    }
+
+    func reload(for userID: UUID?) {
+        scopedUserID = userID
+        guard let userID else {
+            notifications = []
+            return
+        }
+        notifications = database.notifications(recipientID: userID)
     }
 
     func add(kind: NotificationKind, title: String, body: String, targetID: UUID? = nil) {
-        let notification = AppNotification(id: UUID(), kind: kind, title: title, body: body, targetID: targetID, createdAt: .now, isRead: false)
+        let notification = AppNotification(id: UUID(), recipientID: scopedUserID, kind: kind, title: title, body: body, targetID: targetID, createdAt: .now, isRead: false)
         database.insertNotification(notification)
         notifications.insert(notification, at: 0)
     }
@@ -801,7 +826,7 @@ final class NotificationStore {
     }
 
     func markAllRead() {
-        database.markAllNotificationsRead()
+        database.markAllNotificationsRead(recipientID: scopedUserID)
         for index in notifications.indices { notifications[index].isRead = true }
     }
 }

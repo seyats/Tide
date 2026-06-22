@@ -80,6 +80,15 @@ final class AppDependencies {
         push = PushNotificationService(database: database)
         adminAccess = AdminAccessStore()
         router = AppRouter(database: database)
+        messenger.reload(for: session.currentUser?.id)
+        notifications.reload(for: session.currentUser?.id)
+    }
+
+    func handleSessionUserChanged(_ user: User?) {
+        router.reset()
+        messenger.reload(for: user?.id)
+        notifications.reload(for: user?.id)
+        social.reload()
     }
 }
 

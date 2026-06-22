@@ -217,7 +217,7 @@ struct PostActions: View {
 
     private func action(_ symbol: String, _ count: Int?, color: Color = .secondary, action: @escaping () -> Void) -> some View {
         Button {
-            withAnimation(.easeInOut(duration: 0.38)) {
+            withAnimation(.easeInOut(duration: 0.42)) {
                 action()
             }
         } label: {
@@ -226,13 +226,14 @@ struct PostActions: View {
                 if let count { Text(count.formatted(.number.notation(.compactName))).font(.caption) }
             }
             .foregroundStyle(color)
-            .padding(.horizontal, 8)
-            .frame(height: 30)
+            .font(.system(size: 15, weight: .semibold, design: .rounded))
+            .padding(.horizontal, 12)
+            .frame(height: 34)
             .background(.ultraThinMaterial, in: Capsule())
-            .overlay(Capsule().stroke(TidePalette.separator, lineWidth: 0.5))
-            .contentShape(Rectangle())
+            .shadow(color: color.opacity(0.16), radius: 12, y: 4)
+            .contentShape(Capsule())
         }
-        .buttonStyle(TideGlassButtonStyle(tint: color, cornerRadius: 15, minHeight: 30))
+        .buttonStyle(TideGlassIconButtonStyle())
     }
 }
 

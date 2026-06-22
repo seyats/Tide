@@ -11,30 +11,25 @@ struct EmailLoginView: View {
     @State private var isPasswordVisible = false
     @State private var isSignUp = false
 
-    private var emailSuggestions: [String] {
-        EmailSuggestions.suggestions(for: email)
-    }
+    private var emailSuggestions: [String] { EmailSuggestions.suggestions(for: email) }
 
     var body: some View {
         ZStack {
             Color.black.ignoresSafeArea()
-
             VStack(spacing: 0) {
-                header
-                    .padding(.bottom, 40)
+                header.padding(.bottom, 40)
 
                 if isSignUp {
-                    inputBlock(title: "Имя") {
-                        TextField("Имя Фамилия", text: $displayName)
+                    inputBlock(title: "\u{0418}\u{043c}\u{044f}") {
+                        TextField("\u{0418}\u{043c}\u{044f} \u{0424}\u{0430}\u{043c}\u{0438}\u{043b}\u{0438}\u{044f}", text: $displayName)
                             .textContentType(.name)
                     }
                     .padding(.bottom, 20)
                 }
 
-                emailBlock
-                    .padding(.bottom, 24)
+                emailBlock.padding(.bottom, 24)
 
-                inputBlock(title: "Пароль") {
+                inputBlock(title: "\u{041f}\u{0430}\u{0440}\u{043e}\u{043b}\u{044c}") {
                     HStack {
                         Group {
                             if isPasswordVisible {
@@ -44,9 +39,7 @@ struct EmailLoginView: View {
                             }
                         }
                         Spacer()
-                        Button {
-                            isPasswordVisible.toggle()
-                        } label: {
+                        Button { isPasswordVisible.toggle() } label: {
                             Image(systemName: isPasswordVisible ? "eye.slash" : "eye")
                                 .foregroundColor(.gray)
                         }
@@ -57,7 +50,7 @@ struct EmailLoginView: View {
                 if !isSignUp {
                     HStack {
                         Spacer()
-                        Button("Забыли пароль?") { }
+                        Button("\u{0417}\u{0430}\u{0431}\u{044b}\u{043b}\u{0438} \u{043f}\u{0430}\u{0440}\u{043e}\u{043b}\u{044c}?") { }
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
                     }
@@ -67,16 +60,13 @@ struct EmailLoginView: View {
                 Button(action: handleSignIn) {
                     HStack {
                         if dependencies.session.isWorking {
-                            ProgressView()
-                                .tint(.black)
+                            ProgressView().tint(.black)
                         } else {
-                            Text(isSignUp ? "Создать аккаунт" : "Войти")
+                            Text(isSignUp ? "\u{0421}\u{043e}\u{0437}\u{0434}\u{0430}\u{0442}\u{044c} \u{0430}\u{043a}\u{043a}\u{0430}\u{0443}\u{043d}\u{0442}" : "\u{0412}\u{043e}\u{0439}\u{0442}\u{0438}")
                                 .font(.system(size: 16, weight: .semibold))
                         }
                         Spacer()
-                        if !dependencies.session.isWorking {
-                            Image(systemName: "arrow.right")
-                        }
+                        if !dependencies.session.isWorking { Image(systemName: "arrow.right") }
                     }
                     .foregroundColor(.black)
                     .padding(.horizontal, 24)
@@ -88,8 +78,7 @@ struct EmailLoginView: View {
                 .padding(.bottom, 24)
 
                 if let error = dependencies.session.errorMessage {
-                    errorBlock(error)
-                        .padding(.bottom, 24)
+                    errorBlock(error).padding(.bottom, 24)
                 }
 
                 socialBlock
@@ -97,13 +86,11 @@ struct EmailLoginView: View {
                 Spacer()
 
                 HStack(spacing: 4) {
-                    Text(isSignUp ? "Уже есть аккаунт?" : "Нет аккаунта?")
+                    Text(isSignUp ? "\u{0423}\u{0436}\u{0435} \u{0435}\u{0441}\u{0442}\u{044c} \u{0430}\u{043a}\u{043a}\u{0430}\u{0443}\u{043d}\u{0442}?" : "\u{041d}\u{0435}\u{0442} \u{0430}\u{043a}\u{043a}\u{0430}\u{0443}\u{043d}\u{0442}\u{0430}?")
                         .foregroundColor(.gray)
-                    Button(isSignUp ? "Войти" : "Регистрация") {
-                        isSignUp.toggle()
-                    }
-                    .foregroundColor(.white)
-                    .fontWeight(.semibold)
+                    Button(isSignUp ? "\u{0412}\u{043e}\u{0439}\u{0442}\u{0438}" : "\u{0420}\u{0435}\u{0433}\u{0438}\u{0441}\u{0442}\u{0440}\u{0430}\u{0446}\u{0438}\u{044f}") { isSignUp.toggle() }
+                        .foregroundColor(.white)
+                        .fontWeight(.semibold)
                 }
                 .font(.system(size: 14))
                 .padding(.bottom, 32)
@@ -122,11 +109,11 @@ struct EmailLoginView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("С возвращением")
+                Text("\u{0421} \u{0432}\u{043e}\u{0437}\u{0432}\u{0440}\u{0430}\u{0449}\u{0435}\u{043d}\u{0438}\u{0435}\u{043c}")
                     .font(TideTypography.display)
                     .foregroundColor(.white)
 
-                Text("Войдите, чтобы продолжить")
+                Text("\u{0412}\u{043e}\u{0439}\u{0434}\u{0438}\u{0442}\u{0435}, \u{0447}\u{0442}\u{043e}\u{0431}\u{044b} \u{043f}\u{0440}\u{043e}\u{0434}\u{043e}\u{043b}\u{0436}\u{0438}\u{0442}\u{044c}")
                     .font(.system(size: 16, weight: .regular))
                     .foregroundColor(.gray)
             }
@@ -137,8 +124,8 @@ struct EmailLoginView: View {
 
     private var emailBlock: some View {
         VStack(alignment: .leading, spacing: 10) {
-            inputBlock(title: "Эл. почта") {
-                TextField("почта@пример.ру", text: $email)
+            inputBlock(title: "\u{042d}\u{043b}. \u{043f}\u{043e}\u{0447}\u{0442}\u{0430}") {
+                TextField("\u{043f}\u{043e}\u{0447}\u{0442}\u{0430}@\u{043f}\u{0440}\u{0438}\u{043c}\u{0435}\u{0440}.\u{0440}\u{0443}", text: $email)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.emailAddress)
@@ -147,14 +134,10 @@ struct EmailLoginView: View {
             if !emailSuggestions.isEmpty {
                 VStack(spacing: 0) {
                     ForEach(emailSuggestions, id: \.self) { suggestion in
-                        Button {
-                            email = suggestion
-                        } label: {
+                        Button { email = suggestion } label: {
                             HStack {
-                                Image(systemName: "envelope")
-                                    .foregroundColor(.gray)
-                                Text(suggestion)
-                                    .foregroundColor(.white)
+                                Image(systemName: "envelope").foregroundColor(.gray)
+                                Text(suggestion).foregroundColor(.white)
                                 Spacer()
                             }
                             .padding(.horizontal, 16)
@@ -187,11 +170,8 @@ struct EmailLoginView: View {
 
     private func errorBlock(_ message: String) -> some View {
         HStack {
-            Image(systemName: "exclamationmark.circle.fill")
-                .foregroundColor(.red)
-            Text(message)
-                .font(.system(size: 13))
-                .foregroundColor(.red)
+            Image(systemName: "exclamationmark.circle.fill").foregroundColor(.red)
+            Text(message).font(.system(size: 13)).foregroundColor(.red)
             Spacer()
         }
         .padding(.horizontal, 16)
@@ -204,13 +184,12 @@ struct EmailLoginView: View {
         VStack(spacing: 24) {
             HStack {
                 Rectangle().fill(Color(white: 0.15)).frame(height: 0.5)
-                Text("или войдите через")
+                Text("\u{0438}\u{043b}\u{0438} \u{0432}\u{043e}\u{0439}\u{0434}\u{0438}\u{0442}\u{0435} \u{0447}\u{0435}\u{0440}\u{0435}\u{0437}")
                     .font(.system(size: 14))
                     .foregroundColor(.gray)
                     .padding(.horizontal, 8)
                 Rectangle().fill(Color(white: 0.15)).frame(height: 0.5)
             }
-
             HStack(spacing: 20) {
                 socialCircle(.google)
                 socialCircle(.apple)

@@ -554,6 +554,19 @@ struct AppleAuthGlassButton: View {
     private var cornerRadius: CGFloat { shape == .circle ? 24 : 17 }
 
     var body: some View {
+        Group {
+            if shape == .circle {
+                content
+                    .contentShape(Circle())
+            } else {
+                content
+                    .contentShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var content: some View {
         ZStack {
             AuthGlassBackground(cornerRadius: cornerRadius, interactive: true)
             Image(imageName)
@@ -571,8 +584,6 @@ struct AppleAuthGlassButton: View {
             .opacity(0.001)
             .allowsHitTesting(true)
         }
-        .clipShape(shape == .circle ? AnyShape(Circle()) : AnyShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)))
-        .buttonStyle(.plain)
     }
 }
 
@@ -646,17 +657,5 @@ struct AuthGlassBackground: View {
                     .stroke(.white.opacity(interactive ? 0.16 : 0.12), lineWidth: 1)
             }
             .shadow(color: .black.opacity(interactive ? 0.35 : 0.22), radius: 24, y: 10)
-    }
-}
-
-struct AnyShape: Shape {
-    private let builder: (CGRect) -> Path
-
-    init<S: Shape>(_ shape: S) {
-        builder = { rect in shape.path(in: rect) }
-    }
-
-    func path(in rect: CGRect) -> Path {
-        builder(rect)
     }
 }

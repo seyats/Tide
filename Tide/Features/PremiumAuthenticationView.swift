@@ -163,7 +163,7 @@ struct PremiumAuthenticationView: View {
                 Text("Мы отправим тебе код подтверждения")
                     .font(.system(size: 20, weight: .heavy, design: .rounded))
                     .foregroundStyle(.white.opacity(0.42))
-                TextField("tom@example.com", text: $email)
+                TextField("почта@пример.ру", text: $email)
                     .font(.system(size: 33, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
                     .tint(.white)
@@ -480,7 +480,7 @@ struct AuthProfileSetupView: View {
                 Text("@")
                     .font(.system(size: 42, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
-                TextField("username", text: Binding(
+                TextField("Имя пользователя", text: Binding(
                     get: { username },
                     set: {
                         username = $0

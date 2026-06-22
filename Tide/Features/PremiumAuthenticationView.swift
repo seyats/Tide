@@ -337,101 +337,423 @@ struct PremiumAuthenticationView: View {
 
 struct AuthProfileSetupView: View {
     @Environment(AppDependencies.self) private var dependencies
-    @FocusState private var focusedField: Field?
-    @State private var step: Step = .name
+    @FocusState private var focusedField: OnboardingField?
+    @State private var step: OnboardingStep = .name
     @State private var firstName = ""
     @State private var lastName = ""
+    @State private var birthday = Calendar.current.date(from: DateComponents(year: 1993, month: 6, day: 22)) ?? .now
     @State private var username = ""
+    @State private var password = ""
+    @State private var passwordVisible = false
+    @State private var showFindFriends = false
+    @State private var userEditedUsername = false
 
-    private enum Step { case name, username }
-    private enum Field { case firstName, lastName, username }
+    private enum OnboardingStep { case name, birthday, username, password }
+    private enum OnboardingField { case firstName, lastName, username, password }
 
     var body: some View {
         ZStack {
             AuthBlackBackdrop()
 
             VStack(spacing: 0) {
-                Spacer()
-
-                AuthChromeLogo(size: 92)
-                    .padding(.bottom, 28)
-
-                VStack(spacing: 8) {
-                    Text(step == .name ? "Заполни имя" : "Выбери имя пользователя")
-                        .font(.system(size: 29, weight: .black, design: .rounded))
-                        .foregroundStyle(.white)
-
-                    Text(step == .name ? "Так тебя увидят в приложении." : "По нему тебя будут находить.")
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.48))
-                }
-                .padding(.bottom, 30)
-
-                if step == .name {
-                    VStack(spacing: 14) {
-                        AuthInputField(placeholder: "Имя", text: $firstName, icon: "person", isSecure: false, isVisible: .constant(true))
-                            .focused($focusedField, equals: .firstName)
-                        AuthInputField(placeholder: "Фамилия", text: $lastName, icon: "person.text.rectangle", isSecure: false, isVisible: .constant(true))
-                            .focused($focusedField, equals: .lastName)
-                    }
-                } else {
-                    AuthInputField(placeholder: "Имя пользователя", text: $username, icon: "at", isSecure: false, isVisible: .constant(true))
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .focused($focusedField, equals: .username)
+                if step != .name {
+                    onboardingBackButton
+                        .padding(.top, 56)
                 }
 
-                Button(action: continueSetup) {
-                    Text(step == .name ? "Продолжить" : "Войти в приложение")
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.black)
-                        .frame(width: 154, height: 48)
-                        .background(.white, in: Capsule())
-                        .shadow(color: .white.opacity(0.18), radius: 18, y: 8)
-                }
-                .padding(.top, 28)
-
-                Spacer()
-
-                if dependencies.session.currentUser?.isVerified == true {
-                    HStack(spacing: 8) {
-                        TideBrandLogoView(size: 18, style: .circle)
-                        Text("аккаунт верифицирован")
-                            .font(.caption.weight(.medium))
-                    }
-                    .foregroundStyle(.white.opacity(0.48))
-                    .padding(.bottom, 34)
+                switch step {
+                case .name: nameStep
+                case .birthday: birthdayStep
+                case .username: usernameStep
+                case .password: passwordStep
                 }
             }
             .padding(.horizontal, 28)
         }
         .preferredColorScheme(.dark)
         .ignoresSafeArea()
+        .sheet(isPresented: $showFindFriends) {
+            FindFriendsSheet(
+                skip: {
+                    showFindFriends = false
+                    advanceToUsername()
+                },
+                allow: {
+                    showFindFriends = false
+                    advanceToUsername()
+                }
+            )
+            .presentationDetents([.height(560)])
+            .presentationDragIndicator(.visible)
+            .presentationBackground(.black)
+            .preferredColorScheme(.dark)
+        }
         .onAppear {
             let user = dependencies.session.currentUser
             let parts = (user?.name ?? "").split(separator: " ", maxSplits: 1).map(String.init)
             firstName = parts.first ?? ""
             lastName = parts.dropFirst().first ?? ""
-            username = user?.username ?? ""
+            username = generatedUsernames.first ?? ""
             focusedField = .firstName
+        }
+        .onChange(of: firstName) { _, _ in refreshGeneratedUsername() }
+        .onChange(of: lastName) { _, _ in refreshGeneratedUsername() }
+    }
+
+    private var nameStep: some View {
+        VStack(spacing: 0) {
+            Spacer(minLength: 300)
+
+            VStack(spacing: 8) {
+                Text("Как тебя зовут?")
+                    .font(.system(size: 34, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                Text("Так тебя увидят в приложении.")
+                    .font(.system(size: 16, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.42))
+            }
+            .padding(.bottom, 34)
+
+            VStack(spacing: 14) {
+                OnboardingGlassField(placeholder: "Имя", text: $firstName, icon: "person")
+                    .focused($focusedField, equals: .firstName)
+                OnboardingGlassField(placeholder: "Фамилия", text: $lastName, icon: "person.text.rectangle")
+                    .focused($focusedField, equals: .lastName)
+            }
+
+            compactContinueButton(enabled: canContinueName) {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    step = .birthday
+                    focusedField = nil
+                }
+            }
+            .padding(.top, 34)
+
+            Spacer()
+
+            Text("аккаунт верифицирован")
+                .font(.system(size: 14, weight: .heavy, design: .rounded))
+                .foregroundStyle(.white.opacity(0.42))
+                .padding(.bottom, 34)
         }
     }
 
-    private func continueSetup() {
-        switch step {
-        case .name:
-            withAnimation(.easeInOut(duration: 0.25)) {
-                step = .username
-                focusedField = .username
+    private var birthdayStep: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            VStack(alignment: .leading, spacing: 24) {
+                Text("Когда у тебя день\nрождения?")
+                    .font(.system(size: 39, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                    .lineSpacing(6)
+                Text("Дата твоего рождения останется строго\nмежду нами")
+                    .font(.system(size: 20, weight: .heavy, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.42))
             }
-        case .username:
-            let fullName = [firstName, lastName]
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-                .joined(separator: " ")
-            dependencies.session.completeProfileSetup(name: fullName, username: username)
-            dependencies.router.selectedTab = .chats
+            .padding(.top, 74)
+
+            Spacer()
+
+            DatePicker("Дата рождения", selection: $birthday, displayedComponents: .date)
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+                .colorScheme(.dark)
+                .frame(maxWidth: .infinity)
+                .clipped()
+                .padding(.bottom, 28)
+
+            primaryWideButton(title: "Продолжить", enabled: true) {
+                showFindFriends = true
+            }
+            .padding(.bottom, 42)
         }
+    }
+
+    private var usernameStep: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Придумайте имя\nпользователя")
+                .font(.system(size: 39, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .lineSpacing(6)
+                .padding(.top, 74)
+
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                Text("@")
+                    .font(.system(size: 42, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                TextField("username", text: Binding(
+                    get: { username },
+                    set: {
+                        username = $0
+                        userEditedUsername = true
+                    }
+                ))
+                .font(.system(size: 34, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .tint(.white)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .focused($focusedField, equals: .username)
+            }
+            .padding(.top, 42)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 10) {
+                    ForEach(generatedUsernames, id: \.self) { suggestion in
+                        Button {
+                            username = suggestion
+                            userEditedUsername = true
+                        } label: {
+                            Text(suggestion)
+                                .font(.system(size: 15, weight: .black, design: .rounded))
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 18)
+                                .frame(height: 38)
+                                .tideGlass(interactive: true, cornerRadius: 19)
+                        }
+                    }
+                }
+            }
+            .padding(.top, 18)
+
+            Spacer()
+
+            primaryWideButton(title: "Продолжить", enabled: canContinueUsername) {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    step = .password
+                    focusedField = .password
+                }
+            }
+            .padding(.bottom, 42)
+        }
+    }
+
+    private var passwordStep: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Выбери пароль")
+                .font(.system(size: 42, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.top, 74)
+
+            Text("Пароли должны быть сложными для\nугадывания и содержать не менее 8\nсимволов")
+                .font(.system(size: 20, weight: .heavy, design: .rounded))
+                .foregroundStyle(.white.opacity(0.42))
+                .padding(.top, 28)
+
+            HStack(spacing: 12) {
+                Group {
+                    if passwordVisible {
+                        TextField("Пароль", text: $password)
+                    } else {
+                        SecureField("Пароль", text: $password)
+                    }
+                }
+                .font(.system(size: 34, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .tint(.white)
+                .focused($focusedField, equals: .password)
+
+                Button { passwordVisible.toggle() } label: {
+                    Image(systemName: passwordVisible ? "eye.slash" : "eye")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(.white.opacity(0.62))
+                }
+            }
+            .padding(.top, 72)
+
+            Spacer()
+
+            primaryWideButton(title: "Продолжить", enabled: canContinuePassword) {
+                completeSetup()
+            }
+            .padding(.bottom, 42)
+        }
+    }
+
+    private var onboardingBackButton: some View {
+        HStack {
+            Button {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    switch step {
+                    case .name: break
+                    case .birthday: step = .name
+                    case .username: step = .birthday
+                    case .password: step = .username
+                    }
+                }
+            } label: {
+                Image(systemName: "arrow.left")
+                    .font(.system(size: 31, weight: .bold))
+                    .foregroundStyle(.white)
+            }
+            Spacer()
+        }
+    }
+
+    private func compactContinueButton(enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text("Продолжить")
+                .font(.system(size: 18, weight: .black, design: .rounded))
+                .foregroundStyle(.black)
+                .frame(width: 188, height: 58)
+                .background(.white, in: Capsule())
+                .shadow(color: enabled ? .white.opacity(0.22) : .clear, radius: 22, y: 8)
+        }
+        .disabled(!enabled)
+        .opacity(enabled ? 1 : 0.38)
+        .frame(maxWidth: .infinity)
+    }
+
+    private func primaryWideButton(title: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 23, weight: .black, design: .rounded))
+                .foregroundStyle(enabled ? .black : .white.opacity(0.34))
+                .frame(maxWidth: .infinity)
+                .frame(height: 64)
+                .background(enabled ? .white : .white.opacity(0.14), in: Capsule())
+        }
+        .disabled(!enabled)
+    }
+
+    private var canContinueName: Bool {
+        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private var canContinueUsername: Bool {
+        username.trimmingCharacters(in: .whitespacesAndNewlines).count >= 3
+    }
+
+    private var canContinuePassword: Bool {
+        password.count >= 8
+    }
+
+    private var generatedUsernames: [String] {
+        let base = usernameBase
+        return [
+            base + suffix(1),
+            base + suffix(2),
+            base + suffix(3)
+        ]
+    }
+
+    private var usernameBase: String {
+        let source = [firstName, lastName].joined()
+        let latin = source.applyingTransform(.toLatin, reverse: false) ?? source
+        let compact = latin
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
+            .filter { $0.isLetter || $0.isNumber }
+        return compact.isEmpty ? "TideUser" : String(compact.prefix(12)).capitalized
+    }
+
+    private func suffix(_ seed: Int) -> String {
+        let value = abs((firstName + lastName + "\(seed)").hashValue % 899) + 100
+        let letters = ["yv", "wt", "gw", "lz", "io"]
+        return letters[seed % letters.count] + String(value)
+    }
+
+    private func refreshGeneratedUsername() {
+        guard !userEditedUsername else { return }
+        username = generatedUsernames.first ?? username
+    }
+
+    private func advanceToUsername() {
+        withAnimation(.easeInOut(duration: 0.25)) {
+            if username.isEmpty { username = generatedUsernames.first ?? "" }
+            step = .username
+            focusedField = .username
+        }
+    }
+
+    private func completeSetup() {
+        let fullName = [firstName, lastName]
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .joined(separator: " ")
+        dependencies.session.completeProfileSetup(name: fullName, username: username)
+        dependencies.router.selectedTab = .chats
+    }
+}
+
+private struct OnboardingGlassField: View {
+    let placeholder: String
+    @Binding var text: String
+    let icon: String
+
+    var body: some View {
+        HStack(spacing: 12) {
+            TextField(placeholder, text: $text)
+                .font(.system(size: 21, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .tint(.white)
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.34))
+        }
+        .padding(.horizontal, 18)
+        .frame(height: 66)
+        .tideGlass(interactive: true, cornerRadius: 24)
+    }
+}
+
+private struct FindFriendsSheet: View {
+    let skip: () -> Void
+    let allow: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Capsule()
+                .fill(.white.opacity(0.28))
+                .frame(width: 42, height: 5)
+                .frame(maxWidth: .infinity)
+                .padding(.top, 10)
+
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 24, weight: .bold))
+                .foregroundStyle(TidePalette.success)
+                .padding(.top, 54)
+
+            Text("Найди своих друзей")
+                .font(.system(size: 36, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.top, 30)
+
+            Text("Разреши находить твой аккаунт по адресу электронной почты и получай полезные письма о своей активности в Tide.")
+                .font(.system(size: 20, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .lineSpacing(3)
+                .padding(.top, 24)
+
+            Text("Регистрируясь, ты соглашаешься с нашими Условиями, Политикой конфиденциальности и использованием файлов cookie. Tide может использовать твою контактную информацию, включая адрес электронной почты и номер телефона.")
+                .font(.system(size: 17, weight: .heavy, design: .rounded))
+                .foregroundStyle(.white.opacity(0.42))
+                .lineSpacing(3)
+                .padding(.top, 34)
+
+            Spacer()
+
+            Button(action: skip) {
+                Text("Не сейчас")
+                    .font(.system(size: 22, weight: .black, design: .rounded))
+                    .foregroundStyle(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 62)
+                    .tideGlass(interactive: true, cornerRadius: 31)
+            }
+
+            Button(action: allow) {
+                Text("Разрешить")
+                    .font(.system(size: 22, weight: .black, design: .rounded))
+                    .foregroundStyle(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 62)
+                    .background(.white, in: Capsule())
+                    .shadow(color: .white.opacity(0.28), radius: 24, y: 8)
+            }
+            .padding(.top, 14)
+            .padding(.bottom, 28)
+        }
+        .padding(.horizontal, 34)
+        .background(Color.black.ignoresSafeArea())
     }
 }
 

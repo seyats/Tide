@@ -19,6 +19,8 @@ open Tide.xcodeproj
 
 The Simulator build does not need an Apple Developer account. A device build and every installable IPA must be signed.
 
+The CI scripts now write the full `xcodebuild` log to `build/logs/` and package a zip report under `build/artifacts/` when a build fails, so the exact compiler or signing error is preserved alongside the terminal output.
+
 ## GitHub CI
 
 `.github/workflows/ci.yml` generates the Xcode project, builds the app without code signing and runs the test target. It does not create an IPA because simulator products cannot be installed on physical iPhones.

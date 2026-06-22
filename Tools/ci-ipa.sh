@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+source Tools/run-xcodebuild-with-logs.sh
+
 mkdir -p build
 
 SIGNED_READY="false"
@@ -24,7 +26,8 @@ if [[ "$SIGNED_READY" == "true" ]]; then
   security list-keychains -d user -s "$KEYCHAIN_PATH" login.keychain-db
   security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" "$KEYCHAIN_PATH"
 
-  xcodebuild \
+  REPORT_PATH="build/Tide.xcarchive"
+  if ! run_and_capture xcodebuild \
     -project Tide.xcodeproj \
     -scheme Tide \
     -configuration Release \
@@ -32,19 +35,23 @@ if [[ "$SIGNED_READY" == "true" ]]; then
     -archivePath build/Tide.xcarchive \
     DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
     CODE_SIGN_STYLE=Automatic \
-    clean archive
+    clean archive; then
+    finish_with_report 1 "Signed archive failed. Check ${LOG_FILE} for the exact compiler or signing error."
+  fi
 
-  xcodebuild \
+  REPORT_PATH="build/ExportedIPA"
+  if ! run_and_capture xcodebuild \
     -exportArchive \
     -archivePath build/Tide.xcarchive \
     -exportOptionsPlist ExportOptions.plist \
     -exportPath build/ExportedIPA \
-    DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
+    DEVELOPMENT_TEAM="$APPLE_TEAM_ID"; then
+    finish_with_report 1 "IPA export failed. Check ${LOG_FILE} for the exact export error."
+  fi
 
   IPA_PATH="$(find build/ExportedIPA -name '*.ipa' -print -quit)"
   if [[ -z "$IPA_PATH" ]]; then
-    echo "IPA export finished but no .ipa file was found."
-    exit 1
+    finish_with_report 1 "IPA export finished but no .ipa file was found."
   fi
 
   cp "$IPA_PATH" "build/Tide.ipa"
@@ -53,7 +60,8 @@ fi
 
 echo "Signing secrets are missing, building an unsigned IPA artifact instead."
 
-xcodebuild \
+REPORT_PATH="build/DerivedData"
+if ! run_and_capture xcodebuild \
   -project Tide.xcodeproj \
   -scheme Tide \
   -configuration Release \
@@ -61,12 +69,13 @@ xcodebuild \
   -destination 'generic/platform=iOS' \
   -derivedDataPath build/DerivedData \
   CODE_SIGNING_ALLOWED=NO \
-  clean build
+  clean build; then
+  finish_with_report 1 "Unsigned build failed. Check ${LOG_FILE} for the exact compiler error."
+fi
 
 APP_PATH="$(find build/DerivedData/Build/Products/Release-iphoneos -name 'Tide.app' -print -quit)"
 if [[ -z "$APP_PATH" ]]; then
-  echo "Unsigned build finished but Tide.app was not found."
-  exit 1
+  finish_with_report 1 "Unsigned build finished but Tide.app was not found."
 fi
 
 rm -rf build/Payload build/Tide.ipa

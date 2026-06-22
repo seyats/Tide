@@ -339,8 +339,7 @@ struct AuthProfileSetupView: View {
     @Environment(AppDependencies.self) private var dependencies
     @FocusState private var focusedField: OnboardingField?
     @State private var step: OnboardingStep = .name
-    @State private var firstName = ""
-    @State private var lastName = ""
+    @State private var fullName = ""
     @State private var birthday = Calendar.current.date(from: DateComponents(year: 1993, month: 6, day: 22)) ?? .now
     @State private var username = ""
     @State private var password = ""
@@ -349,7 +348,7 @@ struct AuthProfileSetupView: View {
     @State private var userEditedUsername = false
 
     private enum OnboardingStep { case name, birthday, username, password }
-    private enum OnboardingField { case firstName, lastName, username, password }
+    private enum OnboardingField { case name, username, password }
 
     var body: some View {
         ZStack {
@@ -389,45 +388,62 @@ struct AuthProfileSetupView: View {
             .preferredColorScheme(.dark)
         }
         .onAppear {
-            let user = dependencies.session.currentUser
-            let parts = (user?.name ?? "").split(separator: " ", maxSplits: 1).map(String.init)
-            firstName = parts.first ?? ""
-            lastName = parts.dropFirst().first ?? ""
+            fullName = dependencies.session.currentUser?.name ?? ""
             username = generatedUsernames.first ?? ""
-            focusedField = .firstName
+            focusedField = .name
         }
-        .onChange(of: firstName) { _, _ in refreshGeneratedUsername() }
-        .onChange(of: lastName) { _, _ in refreshGeneratedUsername() }
+        .onChange(of: fullName) { _, _ in refreshGeneratedUsername() }
     }
 
     private var nameStep: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 300)
+        VStack(alignment: .leading, spacing: 0) {
+            onboardingBackButton
+                .padding(.top, 56)
 
-            VStack(spacing: 8) {
-                Text("Как тебя зовут?")
+            Spacer(minLength: 186)
+
+            Text("Как тебя зовут?")
+                .font(.system(size: 40, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+                .padding(.bottom, 34)
+
+            ZStack(alignment: .leading) {
+                if fullName.isEmpty {
+                    Text("Имя и фамилия")
+                        .font(.system(size: 34, weight: .black, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.22))
+                }
+                TextField("", text: $fullName)
                     .font(.system(size: 34, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
-                Text("Так тебя увидят в приложении.")
-                    .font(.system(size: 16, weight: .heavy, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.42))
+                    .tint(.white)
+                    .textInputAutocapitalization(.words)
+                    .autocorrectionDisabled()
+                    .focused($focusedField, equals: .name)
             }
-            .padding(.bottom, 34)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(height: 52)
+            .padding(.bottom, 20)
 
-            VStack(spacing: 14) {
-                OnboardingGlassField(placeholder: "Имя", text: $firstName, icon: "person")
-                    .focused($focusedField, equals: .firstName)
-                OnboardingGlassField(placeholder: "Фамилия", text: $lastName, icon: "person.text.rectangle")
-                    .focused($focusedField, equals: .lastName)
+            if !canContinueName {
+                HStack(spacing: 10) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .bold))
+                    Text("Заполните обязательные поля")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                }
+                .foregroundStyle(TidePalette.danger)
+                .padding(.bottom, 46)
+            } else {
+                Spacer(minLength: 26)
             }
 
-            compactContinueButton(enabled: canContinueName) {
+            primaryWideButton(title: "Продолжить", enabled: canContinueName) {
                 withAnimation(.easeInOut(duration: 0.25)) {
                     step = .birthday
                     focusedField = nil
                 }
             }
-            .padding(.top, 34)
 
             Spacer()
 
@@ -616,7 +632,7 @@ struct AuthProfileSetupView: View {
     }
 
     private var canContinueName: Bool {
-        !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !fullName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var canContinueUsername: Bool {
@@ -637,7 +653,7 @@ struct AuthProfileSetupView: View {
     }
 
     private var usernameBase: String {
-        let source = [firstName, lastName].joined()
+        let source = fullName
         let latin = source.applyingTransform(.toLatin, reverse: false) ?? source
         let compact = latin
             .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: .current)
@@ -646,7 +662,7 @@ struct AuthProfileSetupView: View {
     }
 
     private func suffix(_ seed: Int) -> String {
-        let value = abs((firstName + lastName + "\(seed)").hashValue % 899) + 100
+        let value = abs((fullName + "\(seed)").hashValue % 899) + 100
         let letters = ["yv", "wt", "gw", "lz", "io"]
         return letters[seed % letters.count] + String(value)
     }
@@ -665,33 +681,9 @@ struct AuthProfileSetupView: View {
     }
 
     private func completeSetup() {
-        let fullName = [firstName, lastName]
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-            .joined(separator: " ")
-        dependencies.session.completeProfileSetup(name: fullName, username: username)
+        let trimmedName = fullName.trimmingCharacters(in: .whitespacesAndNewlines)
+        dependencies.session.completeProfileSetup(name: trimmedName, username: username)
         dependencies.router.selectedTab = .chats
-    }
-}
-
-private struct OnboardingGlassField: View {
-    let placeholder: String
-    @Binding var text: String
-    let icon: String
-
-    var body: some View {
-        HStack(spacing: 12) {
-            TextField(placeholder, text: $text)
-                .font(.system(size: 21, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
-                .tint(.white)
-            Image(systemName: icon)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.34))
-        }
-        .padding(.horizontal, 18)
-        .frame(height: 66)
-        .tideGlass(interactive: true, cornerRadius: 24)
     }
 }
 

@@ -21,8 +21,7 @@ struct EditProfileView: View {
 
     var body: some View {
         ZStack {
-            TideBackdropView(configuration: dependencies.preferences.backdropConfiguration())
-            Color.black.opacity(0.42).ignoresSafeArea()
+            editProfileBackground.ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 16) {
@@ -61,6 +60,10 @@ struct EditProfileView: View {
                 }
             }
         }
+    }
+
+    private var editProfileBackground: Color {
+        Color(red: 64.0 / 255.0, green: 64.0 / 255.0, blue: 64.0 / 255.0)
     }
 
     private var topBar: some View {
@@ -141,7 +144,7 @@ struct EditProfileView: View {
             glassTextField("Фамилия", text: $surname, field: .surname)
         }
         .padding(.vertical, 6)
-        .background(AuthGlassBackground(cornerRadius: 22, interactive: false))
+        .background(EditProfileCardBackground(cornerRadius: 22))
         .padding(.horizontal, 16)
         .overlay(alignment: .bottomLeading) {
             if let validationMessage {
@@ -186,7 +189,7 @@ struct EditProfileView: View {
         .font(.system(size: 16, weight: .semibold))
         .foregroundStyle(.white)
         .padding(14)
-        .background(AuthGlassBackground(cornerRadius: 22, interactive: false))
+        .background(EditProfileCardBackground(cornerRadius: 22))
         .padding(.horizontal, 16)
     }
 
@@ -222,7 +225,7 @@ struct EditProfileView: View {
             .buttonStyle(.plain)
         }
         .font(.system(size: 16, weight: .regular))
-        .background(AuthGlassBackground(cornerRadius: 22, interactive: false))
+        .background(EditProfileCardBackground(cornerRadius: 22))
         .padding(.horizontal, 16)
     }
 
@@ -382,6 +385,20 @@ private struct EditProfileGlassSnapshot: Equatable {
     let surname: String
     let birthday: Date?
     let avatarImageURL: URL?
+}
+
+private struct EditProfileCardBackground: View {
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(Color(red: 76.0 / 255.0, green: 76.0 / 255.0, blue: 76.0 / 255.0).opacity(0.88))
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.white.opacity(0.075), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.12), radius: 12, y: 6)
+    }
 }
 
 struct SettingsView: View {
